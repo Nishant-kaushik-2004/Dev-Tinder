@@ -28,7 +28,7 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
     if (user)
       return res
         .status(409)
-        .json({ msg: "A user already exist with this email adress" });
+        .json({ message: "A user already exist with this email adress" });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -37,15 +37,33 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
 
     const newUser = new User(signupInput);
 
-    console.log(newUser);
-
     await newUser.save();
 
-    return res.status(200).json({ msg: "User Signed up successfully" });
+    // ✅ Generate JWT token
+    const token = jwt.sign(
+      { loggedInUserId: newUser._id },
+      process.env.SECRETKEY!,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    // ✅ Set cookie in response
+    res.cookie("token", token, {
+      httpOnly: true, // Prevent JS access
+      // secure: true, // Use only over HTTPS (true only for production)
+      sameSite: "strict", // Prevent CSRF
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    return res
+      .status(200)
+      .json({ msg: "User Signed up successfully", user: newUser });
   } catch (err) {
     const errorMsg =
       err instanceof Error ? err.message : "Something went wrong";
-    return res.status(400).json({ msg: errorMsg });
+    return res.status(400).json({ message: "ERROR: " + errorMsg });
   }
 });
 
@@ -85,11 +103,11 @@ authRouter.post("/login", async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === "production",
     });
 
-    return res.status(200).json({ msg: "Logged in successfully" });
+    return res.status(200).json({ message: "Logged in successfully", user });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
-    return res.status(401).json({ msg: errorMessage });
+    return res.status(401).json({ message: "ERROR: " + errorMessage });
   }
 });
 

@@ -33,7 +33,7 @@ profileRouter.get("/profile/view", async (req, res) => {
       message:
         error instanceof Error
           ? "ERROR: " + error.message
-          : "Something went wrong",
+          : "ERROR: Something went wrong",
     });
   }
 });

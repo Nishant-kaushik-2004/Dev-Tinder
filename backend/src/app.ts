@@ -10,15 +10,26 @@ import profileRouter from "./routes/profile.js";
 import requestRouter from "./routes/requests.js";
 import userRouter from "./routes/user.js";
 import userAuth from "./middleware/auth.js";
+import cors from "cors";
 
 const app = express();
+
+// var corsOptions = {
+//   origin: 'http://localhost:5173',
+//   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+// }
+
+app.use(cors({
+  origin: 'http://localhost:5173', // frontend
+  credentials: true // Necessary for allowing cookies
+}));
 
 // Middleware to parse JSON bodies
 app.use(express.json()); // works as middleware for every route as it parses the payload data to json format.
 app.use(cookieParser()); // works as middleware for every route as it parses the cookies present in the request.
 
 // Send the request from wherever it got the first
-app.use(authRouter, userAuth, profileRouter, requestRouter, userRouter);// this is app level Middleware, Here userAuth is applied to all routes declared after it in the middleware chain.
+app.use(authRouter, userAuth, profileRouter, requestRouter, userRouter); // this is app level Middleware, Here userAuth is applied to all routes declared after it in the middleware chain.
 // 🔄 Option 1: App-Level Middleware in app.use -> Used when most routes require auth.
 // 🎯 Option 2: Router-Level Middleware ->  Use when only specific route groups need protection.
 

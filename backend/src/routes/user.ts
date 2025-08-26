@@ -18,7 +18,7 @@ const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills";
 // Get all the pending connections of the loggedIn user.
 userRouter.get("/user/requests/received", async (req, res) => {
   try {
-    const loggedInUserId  = req.user;
+    const loggedInUserId = req.user;
 
     if (!loggedInUserId)
       return res.status(401).json({
@@ -26,7 +26,7 @@ userRouter.get("/user/requests/received", async (req, res) => {
           "You are Unauthorised, Please login first to see received requests!",
       });
 
-    const connections = await ConnectionReqModel.find({
+    const requests = await ConnectionReqModel.find({
       toUserId: loggedInUserId,
       status: "interested",
     }).populate("fromUserId", USER_SAFE_DATA); // Specifying what fields the populated document should have. if not specified then it would have all fields present.
@@ -34,7 +34,7 @@ userRouter.get("/user/requests/received", async (req, res) => {
 
     return res.status(200).json({
       message: "Fecthed all pending connection requests successfully",
-      connections,
+      requests,
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -47,7 +47,7 @@ userRouter.get("/user/requests/received", async (req, res) => {
 
 userRouter.get("/user/connections", async (req, res) => {
   try {
-    const loggedInUserId  = req.user;
+    const loggedInUserId = req.user;
 
     if (!loggedInUserId)
       return res.status(401).json({
@@ -82,7 +82,7 @@ userRouter.get("/user/connections", async (req, res) => {
 
 userRouter.get("/user/feed", async (req, res) => {
   try {
-    const loggedInUserId  = req.user;
+    const loggedInUserId = req.user;
 
     console.log(loggedInUserId);
     // Pagination through backend
