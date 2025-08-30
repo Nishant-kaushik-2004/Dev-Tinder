@@ -13,6 +13,12 @@ export interface IUser {
   photoUrl: string;
   about?: string;
   skills?: string[];
+  location: string;
+  jobTitle?: string;
+  company?: string;
+  experience?: number;
+  isFresher: boolean;
+  profileViews: number;
 }
 
 // 2. Create a Schema corresponding to the document interface.
@@ -80,9 +86,35 @@ const userScehma = new Schema<IUser>(
     about: {
       type: String,
       default: "This is a default about of the user",
+      maxlength: [1000, "About section content should not exceed 1000 letters"],
+      trim: true,
     },
     skills: {
       type: [String],
+    },
+    location: {
+      type: String,
+    },
+    jobTitle: {
+      type: String,
+      maxlength: [100, "Job title should be under 100 letters"],
+      trim: true,
+    },
+    company: {
+      type: String,
+      maxlength: [100, "Company name should be under 100 letters"],
+      trim: true,
+    },
+    experience: {
+      type: Number,
+      max: 20,
+    },
+    isFresher: {
+      type: Boolean,
+    },
+    profileViews: {
+      type: Number,
+      required: true,
     },
   },
   { timestamps: true }

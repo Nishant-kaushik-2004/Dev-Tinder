@@ -13,10 +13,20 @@ export const mockConnections = [
       email: "sarah.j@example.com",
       age: 28,
       gender: "female",
-      photoUrl: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
+      photoUrl:
+        "https://physicaleducationandwellness.mit.edu/wp-content/uploads/Untitled-1.png",
       about: "Full-stack developer passionate about React and Node.js",
-      skills: ["JavaScript", "React", "Node.js", "MongoDB"]
-    }
+      skills: [
+        "React",
+        "Node.js",
+        "Python",
+        "TypeScript",
+        "MongoDB",
+        "AWS",
+        "Docker",
+        "GraphQL",
+      ],
+    },
   },
   {
     _id: "conn2",
@@ -31,10 +41,11 @@ export const mockConnections = [
       email: "alex.chen@example.com",
       age: 25,
       gender: "male",
-      photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+      photoUrl:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
       about: "DevOps engineer who loves automation and cloud technologies",
-      skills: ["AWS", "Docker", "Kubernetes", "Python"]
-    }
+      skills: ["AWS", "Docker", "Kubernetes", "Python"],
+    },
   },
   {
     _id: "conn3",
@@ -49,10 +60,11 @@ export const mockConnections = [
       email: "emily.r@example.com",
       age: 30,
       gender: "female",
-      photoUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
+      photoUrl:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
       about: "UI/UX designer with a passion for creating beautiful interfaces",
-      skills: ["Figma", "Adobe XD", "CSS", "JavaScript"]
-    }
+      skills: ["Figma", "Adobe XD", "CSS", "JavaScript"],
+    },
   },
   {
     _id: "conn4",
@@ -67,10 +79,11 @@ export const mockConnections = [
       email: "michael.t@example.com",
       age: 32,
       gender: "male",
-      photoUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+      photoUrl:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
       about: "Senior backend engineer specializing in microservices",
-      skills: ["Java", "Spring Boot", "PostgreSQL", "Redis"]
-    }
+      skills: ["Java", "Spring Boot", "PostgreSQL", "Redis"],
+    },
   },
   {
     _id: "conn5",
@@ -85,11 +98,12 @@ export const mockConnections = [
       email: "jessica.p@example.com",
       age: 26,
       gender: "female",
-      photoUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face",
+      photoUrl:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face",
       about: "Mobile app developer focusing on React Native and Flutter",
-      skills: ["React Native", "Flutter", "iOS", "Android"]
-    }
-  }
+      skills: ["React Native", "Flutter", "iOS", "Android"],
+    },
+  },
 ];
 
 // Mock data matching your API response structure

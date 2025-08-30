@@ -21,11 +21,11 @@ export default function ThemeDropdown() {
     themes.find((theme) => theme.value === currentTheme)?.label || "Theme";
 
   return (
-    <div className="dropdown dropdown-end">
+    <div className="dropdown dropdown-end -mr-2">
       <div
         tabIndex={0}
         role="button"
-        className="btn btn-lg btn-ghost gap-1 normal-case text-sm px-2 sm:px-3 md:px-3 max-h-10"
+        className="btn btn-lg btn-ghost gap-1 normal-case text-sm px-1 max-h-10"
       >
         {/* Palette icon */}
         <svg
@@ -64,17 +64,17 @@ export default function ThemeDropdown() {
 
       <ul
         tabIndex={0}
-        className="dropdown-content z-[1] p-1 sm:p-2 shadow-2xl bg-base-300 rounded-box w-48 md:w-64 max-h-60 sm:max-h-80 md:max-h-96 overflow-y-auto custom-scrollbar"
+        className="dropdown-content z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-48 md:w-64 max-h-80 overflow-y-auto custom-scrollbar"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "oklch(var(--bc) / 0.2) transparent",
         }}
       >
         {themes.map((theme) => (
-          <li key={theme.label} className="mb-0.5 sm:mb-1">
+          <li key={theme.label} className="my-1">
             <div
               data-theme={theme.value}
-              className={`outline-base-content overflow-hidden rounded-md sm:rounded-lg outline-offset-1 sm:outline-offset-2 ${
+              className={`outline-base-content overflow-hidden rounded-md sm:rounded-lg outline-offset-1 ${
                 currentTheme === theme.value ? "outline sm:outline-2" : ""
               }`}
             >
@@ -84,7 +84,7 @@ export default function ThemeDropdown() {
                 className="bg-base-100 text-base-content w-full cursor-pointer font-sans hover:bg-base-200 transition-colors duration-200"
               >
                 <div className="grid grid-cols-5 grid-rows-3">
-                  <div className="col-span-5 row-span-3 row-start-1 flex items-center gap-2 sm:gap-3 px-2 sm:px-3 md:px-4 py-2 sm:py-3">
+                  <div className="col-span-5 row-span-3 row-start-1 flex items-center gap-2 sm:gap-3 px-2 sm:px-3 md:px-4 py-2">
                     {/* Color swatches */}
                     <div className="flex-shrink-0">
                       <div className="flex flex-wrap gap-0.5 sm:gap-1">

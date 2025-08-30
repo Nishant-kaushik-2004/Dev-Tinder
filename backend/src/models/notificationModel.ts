@@ -18,14 +18,17 @@ export interface IUserSafe {
 }
 
 // 1. Create an interface representing a document in MongoDB.
-export interface IConnectionReq {
-  fromUserId: Types.ObjectId | IUserSafe;
-  toUserId: Types.ObjectId | IUserSafe;
-  status: "interested" | "ignored" | "accepted" | "rejected";
+export interface INotification {
+  fromUserId: Types.ObjectId | IUserSafe; // who receives the notification
+  toUserId: Types.ObjectId | IUserSafe; // who triggered it
+  type: "match_request" | "message" | "profile_view";
+  message: String;
+  isRead: Boolean;
+  createdAt: Date;
 }
 
 // 2. Create a Schema corresponding to the document interface.
-const connectionReqSchema = new Schema<IConnectionReq>(
+const connectionReqSchema = new Schema<INotification>(
   {
     fromUserId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -48,21 +51,6 @@ const connectionReqSchema = new Schema<IConnectionReq>(
   },
   { timestamps: true }
 );
-
-// This is a Mongoose “pre-save hook” — also called middleware.
-// It means: 🔁 Before saving a document to MongoDB, run this custom logic.
-// Can be done in Api but doing here to learn new ways.
-connectionReqSchema.pre("save", function (next) {
-  const connectionRequest = this as IConnectionReq & mongoose.Document;
-  if (
-    connectionRequest.fromUserId.toString() ===
-    connectionRequest.toUserId.toString()
-  ) {
-    return next(new Error("Cannot send connection request to yourself!"));
-  }
-
-  next();
-});
 
 // 3. Create a Model.
 export const ConnectionReqModel = model<IConnectionReq>(

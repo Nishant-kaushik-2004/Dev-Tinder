@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Heart, MessageCircle, Users, Filter } from "lucide-react";
-import { developers } from "./data/mockDevelopers";
-import QuickActions from "./components/home-page/quickActions";
-import DeveloperCard from "./components/home-page/developerCard";
-import FiltersPanel from "./components/home-page/filtersPanel";
-import SwipeControls from "./components/home-page/swipeControl";
+import { developers } from "../../data/mockDevelopers";
+import QuickActions from "./quickActions";
+import DeveloperCard from "./developerCard";
+import FiltersPanel from "./filtersPanel";
+import SwipeControls from "./swipeControl";
 
-// Main App Component
-const DevTinderApp = () => {
+// Main devTinder App Component
+const Feed = () => {
   const [currentDeveloper, setCurrentDeveloper] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({});
@@ -41,7 +41,9 @@ const DevTinderApp = () => {
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="card-title text-base-content/60 text-sm font-medium">Total Matches</h2>
+                  <h2 className="card-title text-base-content/60 text-sm font-medium">
+                    Total Matches
+                  </h2>
                   <p className="text-3xl font-bold text-primary">42</p>
                   <p className="text-sm text-success">↗︎ 8 new this week</p>
                 </div>
@@ -56,7 +58,9 @@ const DevTinderApp = () => {
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="card-title text-base-content/60 text-sm font-medium">Messages</h2>
+                  <h2 className="card-title text-base-content/60 text-sm font-medium">
+                    Messages
+                  </h2>
                   <p className="text-3xl font-bold text-secondary">15</p>
                   <p className="text-sm text-success">↗︎ 3 unread</p>
                 </div>
@@ -71,7 +75,9 @@ const DevTinderApp = () => {
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="card-title text-base-content/60 text-sm font-medium">Profile Views</h2>
+                  <h2 className="card-title text-base-content/60 text-sm font-medium">
+                    Profile Views
+                  </h2>
                   <p className="text-3xl font-bold text-accent">128</p>
                   <p className="text-sm text-success">↗︎ 12 today</p>
                 </div>
@@ -86,7 +92,9 @@ const DevTinderApp = () => {
         {/* Filter Controls */}
         <div className="navbar bg-transparent px-0 mb-6">
           <div className="navbar-start">
-            <h1 className="text-2xl font-bold text-base-content">Discover Developers</h1>
+            <h1 className="text-2xl font-bold text-base-content">
+              Discover Developers
+            </h1>
           </div>
           <div className="navbar-end">
             <button
@@ -100,29 +108,30 @@ const DevTinderApp = () => {
         </div>
 
         {/* Card Stack */}
-        <div className="hero min-h-[600px]">
-          <div className="">
-            <div className="relative">
-              {developers.length > 0 && (
-                <DeveloperCard
-                  developer={developers[currentDeveloper]}
-                  onSwipe={handleSwipe}
-                />
-              )}
-              {/* Stack effect - show next card behind */}
-              {developers.length > 1 && (
-                <div className="absolute top-2 left-2 w-96 h-[550px] rounded-2xl bg-base-100 shadow-lg -z-10 opacity-0 overflow-hidden">
-                  <figure className="h-full">
-                    <img
-                      src={developers[(currentDeveloper + 1) % developers.length].photoUrl}
-                      alt="Next developer"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-base-content/20"></div>
-                  </figure>
-                </div>
-              )}
-            </div>
+        <div className="hero min-h-[500px]">
+          <div className="relative">
+            {developers.length > 0 && (
+              <DeveloperCard
+                developer={developers[currentDeveloper]}
+                onSwipe={handleSwipe}
+              />
+            )}
+            {/* Stack effect - show next card behind */}
+            {developers.length > 1 && (
+              <div className="absolute top-2 left-2 w-96 h-[550px] rounded-2xl bg-base-100 shadow-lg -z-10 opacity-0 overflow-hidden">
+                <figure className="h-full">
+                  <img
+                    src={
+                      developers[(currentDeveloper + 1) % developers.length]
+                        .photoUrl
+                    }
+                    alt="Next developer"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-base-content/20"></div>
+                </figure>
+              </div>
+            )}
           </div>
         </div>
 
@@ -136,4 +145,4 @@ const DevTinderApp = () => {
   );
 };
 
-export default DevTinderApp;
+export default Feed;

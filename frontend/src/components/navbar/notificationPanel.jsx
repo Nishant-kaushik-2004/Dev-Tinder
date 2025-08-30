@@ -5,7 +5,7 @@ const NotificationPanel = ({ isOpen, onClose, notifications }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="dropdown menu bg-base-100 border border-base-300 rounded-box shadow-xl w-64 sm:w-80 max-h-96 overflow-y-auto p-0 absolute right-0 top-full mt-2 z-[60] custom-scrollbar">
+    <div className="dropdown menu bg-base-100 border border-base-300 rounded-box shadow-xl w-64 sm:w-80 p-0 absolute right-0 top-full mt-2 z-[60]">
       {/* Header */}
       <div className="navbar bg-base-200 rounded-t-box px-4 py-2 border-b border-base-300">
         <div className="navbar-start">
@@ -24,7 +24,13 @@ const NotificationPanel = ({ isOpen, onClose, notifications }) => {
       </div>
 
       {/* Content */}
-      <div className="p-2">
+      <div
+        className="p-2 overflow-y-auto custom-scrollbar max-h-72"
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "oklch(var(--bc) / 0.2) transparent",
+        }}
+      >
         {notifications.length > 0 ? (
           <div className="space-y-2">
             {notifications.map((n, index) => (
@@ -64,7 +70,7 @@ const NotificationPanel = ({ isOpen, onClose, notifications }) => {
       {/* Footer (optional) */}
       {notifications.length > 0 && <div className="divider my-0"></div>}
       {notifications.length > 0 && (
-        <div className="p-3">
+        <div className="p-2">
           <button className="btn btn-ghost btn-sm w-full text-primary hover:bg-primary/10">
             Mark all as read
           </button>

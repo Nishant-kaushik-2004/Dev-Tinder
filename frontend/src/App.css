@@ -7,7 +7,7 @@
 html, body {
   overflow-x: hidden; /* Essesntial to disable horizontal overflow while dragging the card. This keeps the page still while we swipe the card, no matter how far we pull it */
 }
-/* 
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

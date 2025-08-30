@@ -91,6 +91,7 @@ const MatchRequests = () => {
   const handleDiscoverClick = () => {
     console.log("Navigate to discover page");
     // In real app: navigate('/discover');
+    navigate("/");
   };
 
   // Handle back navigation (only for mobile)
@@ -101,8 +102,8 @@ const MatchRequests = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-200">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="container min-h-screen bg-base-200">
+      <div className="mx-auto px-4 py-8">
         {/* Navigation - Only show on mobile */}
         {/* <div className="flex items-center space-x-4 mb-8 md:hidden">
           <button
@@ -116,12 +117,12 @@ const MatchRequests = () => {
         </div> */}
 
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
               <Sparkles className="w-6 h-6 text-primary-content" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-base-content">
+            <h1 className="text-3xl font-bold text-base-content">
               Match Requests
             </h1>
           </div>
@@ -140,7 +141,7 @@ const MatchRequests = () => {
         {/* Content */}
         {isLoading ? (
           // Skeleton Loading State
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <RequestCardSkeleton key={i} />
             ))}
@@ -150,7 +151,7 @@ const MatchRequests = () => {
           <EmptyState onDiscoverClick={handleDiscoverClick} />
         ) : (
           // Requests Grid
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4  gap-6">
             {requests.map((request, index) => (
               <div
                 key={request._id}

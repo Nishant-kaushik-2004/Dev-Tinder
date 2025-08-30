@@ -273,19 +273,19 @@ const EditProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-200">
+    <div className="container min-h-screen mx-auto px-4 py-8">
       {/* Hero Section */}
-      <div className="flex items-center justify-center space-x-3 mb-4 pt-8">
-        <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-          <Sparkles className="w-6 h-6 text-primary-content" />
+      <div className="xl:text-center">
+        <div className="inline-flex justify-center items-center space-x-3 mb-4">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+            <Sparkles className="w-6 h-6 text-primary-content" />
+          </div>
+          <h1 className="text-3xl font-bold text-base-content">Edit Profile</h1>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-base-content">
-          Edit Profile
-        </h1>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 sm:px-8 py-8  max-w-6xl">
+      <div className="container mx-auto sm:px-8 py-8  max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8 lg:gap-4">
           {/* Left Column - Edit Form */}
           <div className="order-2 lg:order-1">
@@ -569,7 +569,7 @@ const EditProfilePage = () => {
                   How others will see you
                 </p>
               </div>
-            <ProfileCardPreview user={formData} />
+              <ProfileCardPreview user={formData} />
             </div>
           </div>
         </div>

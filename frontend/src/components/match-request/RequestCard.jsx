@@ -51,7 +51,7 @@ const RequestCard = ({ request, onAccept, onReject, isProcessing }) => {
           </div>
 
           {/* Bio */}
-          <p className="text-sm text-base-content/70 text-center leading-relaxed line-clamp-3">
+          <p className="text-sm text-base-content/70 text-center line-clamp-2">
             {user.about}
           </p>
 

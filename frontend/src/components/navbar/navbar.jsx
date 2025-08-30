@@ -6,23 +6,42 @@ import {
   Code,
   Users,
   LucideGitPullRequestDraft,
+  LogOut,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router";
 import NotificationPanel from "./notificationPanel";
 import { notificationsList } from "../../data/mockDevelopers";
-import DropDownMenu from "./dropDownMenu";
+import DropDownMenu from "./mobileNavigation";
 import ThemeDropdown from "./themeDropdown";
+import ProfileDropdown from "./profileDropdown";
 
 // Navbar Component
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState(notificationsList);
-
-  const user = useSelector((state) => state.user);
+  // const dropdownRef = useRef(null);
 
   const location = useLocation();
+
+  // // Close dropdown whenever route changes
+  // useEffect(() => {
+  //   setOpen(false);
+  //   console.log(location);
+  // }, [location]);
+
+  // // Close on outside click
+  // useEffect(() => {
+  //   const onDocClick = (e) => {
+  //     if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+  //       setOpen(false);
+  //   };
+  //   document.addEventListener("mousedown", onDocClick);
+  //   return () => document.removeEventListener("mousedown", onDocClick);
+  // }, []);
+
+  const user = useSelector((state) => state.user);
 
   const isEditingProfile = location.pathname === "/profile";
 
@@ -85,7 +104,7 @@ const Navbar = () => {
         </ul>
       </div>
 
-      <div className="navbar-end gap-3">
+      <div className="navbar-end gap-5">
         <ThemeDropdown />
         {/* Notification Button with Proper Badge */}
         <div className="indicator mt-2 mr-2">
@@ -95,64 +114,24 @@ const Navbar = () => {
           >
             <Bell className="w-5 h-5 text-base-content" />
           </button>
-          {notifications.length > 0 && (
-            <span className="indicator-item badge badge-primary badge-sm text-xs font-bold min-w-[1.25rem] h-5">
-              {notifications.length > 99 ? "99+" : notifications.length}
-            </span>
-          )}
           {/* Notification Panel */}
           <NotificationPanel
             isOpen={showNotifications}
             onClose={() => setShowNotifications(false)}
             notifications={notifications}
           />
+          {notifications.length > 0 && (
+            <span className="indicator-item badge badge-primary badge-sm text-xs font-bold min-w-[1.25rem] h-5">
+              {notifications.length > 99 ? "99+" : notifications.length}
+            </span>
+          )}
         </div>
 
-        {/* Profile Dropdown */}
-        <div className="dropdown dropdown-end">
-          <div
-            tabIndex={0}
-            role="button"
-            className="btn btn-ghost btn-circle avatar hover:bg-base-200"
-          >
-            <div className="w-8 sm:w-10 rounded-full ring-2 ring-base-300 hover:ring-primary transition-all">
-              <img
-                alt="Profile"
-                src={
-                  user.photoUrl ||
-                  "https://geographyandyou.com/images/user-profile.png"
-                }
-                className="rounded-full object-cover"
-              />
-            </div>
-          </div>
-          <ul className="dropdown-content menu menu-sm bg-base-100 border border-base-300 rounded-box w-52 p-2 shadow-xl mt-3 z-[1]">
-            <li>
-              {isEditingProfile ? (
-                <Link
-                  to="/"
-                  className="flex items-center gap-3 p-3 text-base-content hover:bg-primary/10 hover:text-primary rounded-lg"
-                >
-                  <Code className="w-4 h-4" />
-                  <span>Feed</span>
-                </Link>
-              ) : (
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-3 p-3 text-base-content hover:bg-primary/10 hover:text-primary rounded-lg"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Edit Profile</span>
-                </Link>
-              )}
-            </li>
-            <li>
-              <button className="flex items-center gap-3 p-3 text-base-content hover:bg-error/10 hover:text-error rounded-lg">
-                <span>Logout</span>
-              </button>
-            </li>
-          </ul>
-        </div>
+        <ProfileDropdown
+          user={user}
+          isEditingProfile={isEditingProfile}
+          // handleLogout={handleLogout}
+        />
       </div>
     </div>
   );

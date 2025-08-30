@@ -3,7 +3,7 @@ import "./App.css";
 import Body from "./body";
 import Login from "./components/login";
 import Signup from "./components/signup";
-import DevTinderApp from "./homePage";
+import Feed from "./components/discover-page/feed";
 import EditProfile from "./components/edit-profile/editProfile";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
@@ -46,7 +46,7 @@ const App = () => {
         <Routes>
           {/* Layout route */}
           <Route element={<Body />}>
-            <Route index element={<DevTinderApp />} /> {/* Home route */}
+            <Route index element={<Feed />} /> {/* Home route */}
             <Route path="profile" element={<EditProfile />} />
             <Route path="connections" element={<MatchesPage />} />
             <Route path="requests" element={<MatchRequests />} />

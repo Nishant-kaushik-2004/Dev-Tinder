@@ -67,13 +67,13 @@ export const notificationsList = [
 export const developers = [
     {
       _id: "1",
-      firstName: "Sarah",
-      lastName: "Chen",
+      firstName: "Harry",
+      lastName: "Brook",
       email: "sarah.chen@email.com",
       age: 26,
       gender: "female",
       photoUrl:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+        "https://as1.ftcdn.net/v2/jpg/05/40/63/14/1000_F_540631446_a39tc1A3Smh7U2xbyijSEKGrx4FbJW6F.jpg",
       about:
         "Full-stack developer passionate about React and Node.js. I love building scalable applications and mentoring junior developers. When I'm not coding, you'll find me exploring new coffee shops or hiking trails!",
       skills: [

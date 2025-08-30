@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, Heart, User, ArrowUpDown } from "lucide-react";
+import { Search, Heart, User, ArrowUpDown, Sparkles } from "lucide-react";
 import { mockConnections } from "../../data/mockConnections";
 import { useNavigate } from "react-router";
 import ConnectionCard from "./connectionCard";
-
+import {
+  ConnectionsGridSkeleton,
+  SearchAndSortBarSkeleton,
+} from "./MatchesLoadingState";
+import SearchAndSortBar from "./searchAndSortbar";
 
 // Main MatchesPage Component
 const MatchesPage = () => {
@@ -67,22 +71,41 @@ const MatchesPage = () => {
   const handleConnectionClick = (userId) => {
     console.log("Navigate to profile:", userId);
     // In real app: navigate(`/profile/${userId}`);
+    navigate(`/user?user=${userId}`);
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="loading loading-spinner loading-lg text-primary"></div>
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <MatchesLoadingState
+  //       variant="default" // or "compact"
+  //       showSearchBar={true}
+  //       cardCount={8}
+  //     />
+  //   );
+  // }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container min-h-screen mx-auto px-4 py-8">
+      <div className="xl:text-center mb-8">
+        <div className="inline-flex items-center space-x-3 mb-4">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+            <Sparkles className="w-6 h-6 text-primary-content" />
+          </div>
+          <h1 className="text-3xl font-bold text-base-content">Your Matches</h1>
+        </div>
+        {!isLoading && (
+          <p className="text-lg text-base-content/70">
+            {connections.length === 0
+              ? "You haven't found a match yet"
+              : `${connections.length} developer${
+                  connections.length !== 1 ? "s" : ""
+                } 
+          you've connected with`}
+          </p>
+        )}
+      </div>
       {/* Page Header */}
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <h1 className="text-3xl font-bold text-base-content mb-2">
           Your Matches
         </h1>
@@ -90,10 +113,18 @@ const MatchesPage = () => {
           {connections.length} developer{connections.length !== 1 ? "s" : ""}{" "}
           you've connected with
         </p>
-      </div>
+      </div> */}
 
       {/* Show content only if there are connections */}
-      {connections.length > 0 ? (
+      {isLoading ? (
+        <div className="mt-12">
+          {/* Search and Sort Bar Skeleton */}
+          <SearchAndSortBarSkeleton />
+
+          {/* Connections Grid Skeleton */}
+          <ConnectionsGridSkeleton />
+        </div>
+      ) : connections.length > 0 ? (
         <>
           {/* Search and Sort Controls */}
           <SearchAndSortBar
@@ -165,41 +196,5 @@ const MatchesPage = () => {
     </div>
   );
 };
-
-
-// SearchAndSortBar Component
-const SearchAndSortBar = ({
-  searchTerm,
-  onSearchChange,
-  sortOrder,
-  onSortChange,
-}) => (
-  <div className="flex flex-col sm:flex-row gap-4 mb-6">
-    {/* Search Input */}
-    <div className="relative flex-1">
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 w-5 h-5" />
-      <input
-        type="text"
-        placeholder="Search connections by name..."
-        className="input input-bordered w-full pl-10 focus:outline-none"
-        value={searchTerm}
-        onChange={(e) => onSearchChange(e.target.value)}
-      />
-    </div>
-
-    {/* Sort Dropdown */}
-    <div className="relative">
-      <select
-        className="select select-bordered w-full sm:w-auto focus:outline-none"
-        value={sortOrder}
-        onChange={(e) => onSortChange(e.target.value)}
-      >
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-      </select>
-      <ArrowUpDown className="absolute right-8 top-1/2 transform -translate-y-1/2 text-base-content/50 w-4 h-4 pointer-events-none" />
-    </div>
-  </div>
-);
 
 export default MatchesPage;

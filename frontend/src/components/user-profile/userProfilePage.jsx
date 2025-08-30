@@ -37,7 +37,7 @@ const UserProfilePage = () => {
     firstName: "Sarah",
     lastName: "Johnson",
     profileImage:
-      "https://images.bhaskarassets.com/web2images/1884/2025/06/04/fotojet-2025-06-04t071853234_1749001807.jpg",
+      "https://physicaleducationandwellness.mit.edu/wp-content/uploads/Untitled-1.png",
     bio: "Full-stack developer passionate about creating innovative solutions. I love working with React, Node.js, and exploring new technologies. Always eager to collaborate on exciting projects!",
     location: "San Francisco, CA",
     skills: [

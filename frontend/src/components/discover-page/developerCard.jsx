@@ -20,6 +20,7 @@ const DeveloperCard = ({ developer, onSwipe }) => {
   };
 
   const handleMouseUp = () => {
+    if (!isDragging) return; // ✅ Prevent multiple triggers (🚨 V.V.V.Imp oyherwise is gets swiped two or may be three times)
     if (Math.abs(dragOffset) > 120) {
       handleSwipe(dragOffset > 0 ? "right" : "left");
     } else {
@@ -54,6 +55,7 @@ const DeveloperCard = ({ developer, onSwipe }) => {
   };
 
   const handleTouchEnd = () => {
+    if (!isDragging) return; // ✅ Prevent multiple triggers (🚨 V.V.V.Imp oyherwise is gets swiped two or may be three times)
     if (Math.abs(dragOffset) > 120) {
       handleSwipe(dragOffset > 0 ? "right" : "left");
     } else {
@@ -67,7 +69,7 @@ const DeveloperCard = ({ developer, onSwipe }) => {
   const opacity = 1 - Math.abs(dragOffset) / 300;
 
   return (
-    <div className="relative w-96 h-[500px]">
+    <div className="relative min-w-[380px] w-[100%] sm:w-[400px] md:w-[420px] 2xl:w-[440px] h-[500px] 2xl:h-[550px] select-none">
       <div
         className={`card w-full h-full shadow-2xl cursor-grab active:cursor-grabbing transition-all duration-300 transform-gpu bg-base-100 overflow-hidden ${
           isAnimating
@@ -92,10 +94,10 @@ const DeveloperCard = ({ developer, onSwipe }) => {
       >
         {/* Background Image */}
         <figure className="absolute inset-0">
-          <img 
-            src={developer.photoUrl} 
+          <img
+            src={developer.photoUrl}
             alt={`${developer.firstName} ${developer.lastName}`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover pointer-events-none"
           />
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-base-content/80 via-base-content/20 to-transparent"></div>

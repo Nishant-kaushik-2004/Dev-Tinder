@@ -32,7 +32,7 @@ const ConnectionCard = ({ connection, onClick }) => {
             <h3 className="font-semibold text-lg text-base-content truncate">
               {connectedUser.firstName} {connectedUser.lastName}
             </h3>
-            <p className="text-sm text-base-content/70 truncate">
+            <p className="text-sm text-base-content/70 line-clamp-2">
               {connectedUser.about}
             </p>
             <div className="flex items-center mt-2">
