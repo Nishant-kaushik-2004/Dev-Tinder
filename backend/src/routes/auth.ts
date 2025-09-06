@@ -112,13 +112,21 @@ authRouter.post("/login", async (req: Request, res: Response) => {
 });
 
 authRouter.post("/logout", (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  res.status(200).json({ message: "Logged out successfully" });
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      path: "/", // 👈 must match login
+      // domain: "localhost", // 👈 add this if you’re on localhost
+    });
+    console.log("Logged out successfully");
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    return res.status(401).json({ message: "ERROR: " + errorMessage });
+  }
 });
 
 export default authRouter;

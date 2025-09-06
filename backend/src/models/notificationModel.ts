@@ -1,7 +1,7 @@
 // Typescript is not supported while using require.
 import mongoose, { Schema, Types, model } from "mongoose";
 
-export interface IUserSafe {
+interface IUserSafe {
   _id: Types.ObjectId;
   firstName: string;
   lastName: string;
@@ -11,49 +11,54 @@ export interface IUserSafe {
   about?: string;
   skills?: string[];
   location: string;
+  isFresher: boolean;
   jobTitle?: string;
   company?: string;
   experience?: number;
-  isFresher: boolean;
 }
 
 // 1. Create an interface representing a document in MongoDB.
 export interface INotification {
   fromUserId: Types.ObjectId | IUserSafe; // who receives the notification
   toUserId: Types.ObjectId | IUserSafe; // who triggered it
-  type: "match_request" | "message" | "profile_view";
+  type: "match_request" | "request_accept" | "message" | "profile_view";
   message: String;
   isRead: Boolean;
   createdAt: Date;
 }
 
 // 2. Create a Schema corresponding to the document interface.
-const connectionReqSchema = new Schema<INotification>(
+const notificationSchema = new Schema<INotification>(
   {
     fromUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     toUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
-    status: {
+    type: {
       type: String,
       enum: {
-        values: ["interested", "ignored", "accepted", "rejected"],
-        message: "{VALUE} is not a valid status",
+        values: ["match_request", "request_accept", "message", "profile_view"],
+        message: "{VALUE} is not a valid notification type",
       },
+    },
+    message: {
+      type: String,
+      required: true,
+      maxlength: [100, "Job title should be under 100 letters"],
     },
   },
   { timestamps: true }
 );
 
 // 3. Create a Model.
-export const ConnectionReqModel = model<IConnectionReq>(
-  "ConnectionRequest",
-  connectionReqSchema
+export const NotificationModel = model<INotification>(
+  "Notification",
+  notificationSchema
 );

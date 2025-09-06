@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles } from "lucide-react";
+import { GitPullRequestDraft, Sparkles } from "lucide-react";
 import { mockRequestsData } from "../../data/mockConnections";
 import { useNavigate } from "react-router";
 import RequestCardSkeleton from "./skeletonLoader";
@@ -19,7 +19,7 @@ const MatchRequests = () => {
       setIsLoading(true);
 
       // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // In real app:
       // const response = await axios.get('/user/requests/received');
@@ -120,7 +120,7 @@ const MatchRequests = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center space-x-3 mb-4">
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-              <Sparkles className="w-6 h-6 text-primary-content" />
+              <GitPullRequestDraft className="w-6 h-6 text-primary-content" />
             </div>
             <h1 className="text-3xl font-bold text-base-content">
               Match Requests

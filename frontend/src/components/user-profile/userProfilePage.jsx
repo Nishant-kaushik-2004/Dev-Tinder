@@ -76,7 +76,7 @@ const UserProfilePage = () => {
         // }
 
         // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
         // Check if viewing own profile
         let profileData = { ...mockProfileData };

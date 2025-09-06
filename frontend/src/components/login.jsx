@@ -29,18 +29,10 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
-  const [theme, setTheme] = useState("light");
+  // const [theme, setTheme] = useState("dark");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  // Initialize theme from localStorage (in real app)
-  useEffect(() => {
-    // In real implementation:
-    // const savedTheme = localStorage.getItem('theme') || 'light';
-    // setTheme(savedTheme);
-    // document.documentElement.setAttribute('data-theme', savedTheme);
-  }, []);
 
   /**
    * Email validation using RFC 5322 compliant regex
@@ -164,18 +156,18 @@ const LoginPage = () => {
   /**
    * Toggle theme between light and dark
    */
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
+  // const toggleTheme = () => {
+  //   const newTheme = theme === "light" ? "dark" : "light";
+  //   setTheme(newTheme);
 
-    // In real implementation:
-    // localStorage.setItem('theme', newTheme);
-    // document.documentElement.setAttribute('data-theme', newTheme);
-  };
+  //   // In real implementation:
+  //   // localStorage.setItem('theme', newTheme);
+  //   // document.documentElement.setAttribute('data-theme', newTheme);
+  // };
 
   return (
-    <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
-      {/* Theme Toggle */}
+    <div className="min-h-screen bg-base-300 flex items-center justify-center p-4">
+      {/* Theme Toggle
       <div className="absolute top-4 right-4">
         <button
           onClick={toggleTheme}
@@ -184,7 +176,7 @@ const LoginPage = () => {
         >
           {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
         </button>
-      </div>
+      </div> */}
 
       {/* Login Card */}
       <div className="card w-full max-w-md bg-base-100 shadow-xl">

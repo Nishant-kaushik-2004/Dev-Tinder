@@ -57,7 +57,7 @@ profileRouter.patch("/profile/edit", async (req, res) => {
     await loggedInUser.save();
 
     return res.status(200).json({
-      message: `${loggedInUser.firstName}, Your details updated successfully`,
+      message: `${loggedInUser.firstName}, Your profile has been updated successfully`,
       user: loggedInUser,
     });
   } catch (error) {

@@ -11,18 +11,25 @@ import requestRouter from "./routes/requests.js";
 import userRouter from "./routes/user.js";
 import userAuth from "./middleware/auth.js";
 import cors from "cors";
+import { createServer } from "node:http";
+import InitializeSocket from "./utils/socket.js";
 
 const app = express();
+const server = createServer(app);
 
 // var corsOptions = {
 //   origin: 'http://localhost:5173',
 //   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 // }
 
-app.use(cors({
-  origin: 'http://localhost:5173', // frontend
-  credentials: true // Necessary for allowing cookies
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173", // frontend
+    credentials: true, // Necessary for allowing cookies
+  })
+);
+
+InitializeSocket(server);
 
 // Middleware to parse JSON bodies
 app.use(express.json()); // works as middleware for every route as it parses the payload data to json format.
@@ -36,8 +43,8 @@ app.use(authRouter, userAuth, profileRouter, requestRouter, userRouter); // this
 connectDb()
   .then(() => {
     console.log("db connected successfully");
-    app.listen(3333, () => {
-      console.log("Server successfully started listening");
+    server.listen(3333, () => {
+      console.log("server running at http://localhost:3333");
     });
   })
   .catch((err) => {
@@ -46,15 +53,15 @@ connectDb()
       err
     );
   });
-app.use("/", (req, res, next) => {
-  // res.json("laila mai laila");
-  next();
-});
+// app.use("/", (req, res, next) => {
+//   // res.json("trying...");
+//   next();
+// });
 
-app.post("/insertuser", async (req, res, next) => {
-  console.log(req.body);
-  const newUser = new User(req.body);
-  await newUser.save();
-  console.log("user saved successfully in the database");
-  res.status(201).json(req.body);
-});
+// app.post("/insertuser", async (req, res, next) => {
+//   console.log(req.body);
+//   const newUser = new User(req.body);
+//   await newUser.save();
+//   console.log("user saved successfully in the database");
+//   res.status(201).json(req.body);
+// });

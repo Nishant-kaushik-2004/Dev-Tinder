@@ -95,22 +95,22 @@ const userScehma = new Schema<IUser>(
     location: {
       type: String,
     },
+    isFresher: {
+      type: Boolean,
+    },
     jobTitle: {
       type: String,
-      maxlength: [100, "Job title should be under 100 letters"],
+      maxlength: [60, "Job title should be under 60 letters"],
       trim: true,
     },
     company: {
       type: String,
-      maxlength: [100, "Company name should be under 100 letters"],
+      maxlength: [60, "Company name should be under 60 letters"],
       trim: true,
     },
     experience: {
       type: Number,
       max: 20,
-    },
-    isFresher: {
-      type: Boolean,
     },
     profileViews: {
       type: Number,

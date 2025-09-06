@@ -12,8 +12,15 @@ import axios from "axios";
 import MatchesPage from "./components/matched-profiles/connections";
 import MatchRequests from "./components/match-request/matchRequests";
 import UserProfilePage from "./components/user-profile/userProfilePage";
+import Chat from "./components/chat-page/chat";
 
 const App = () => {
+  // Initialize theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }, []);
+
   const dispatch = useDispatch();
 
   const fetchData = async () => {
@@ -51,6 +58,7 @@ const App = () => {
             <Route path="connections" element={<MatchesPage />} />
             <Route path="requests" element={<MatchRequests />} />
             <Route path="user" element={<UserProfilePage />} />
+            <Route path="chat" element={<Chat />} />
           </Route>
 
           {/* Auth routes outside layout */}

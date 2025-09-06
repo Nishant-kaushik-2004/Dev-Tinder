@@ -8,13 +8,15 @@ import {
   LucideGitPullRequestDraft,
   LogOut,
 } from "lucide-react";
-import { useSelector } from "react-redux";
-import { Link, useLocation } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router";
 import NotificationPanel from "./notificationPanel";
 import { notificationsList } from "../../data/mockDevelopers";
 import DropDownMenu from "./mobileNavigation";
 import ThemeDropdown from "./themeDropdown";
 import ProfileDropdown from "./profileDropdown";
+import axios from "axios";
+import { removeUser } from "../../store/userSlice";
 
 // Navbar Component
 const Navbar = () => {
@@ -24,6 +26,8 @@ const Navbar = () => {
   // const dropdownRef = useRef(null);
 
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // // Close dropdown whenever route changes
   // useEffect(() => {
@@ -48,6 +52,23 @@ const Navbar = () => {
   const handleNotificationClick = () => {
     setShowNotifications(!showNotifications);
     // setNotifications([]);
+  };
+
+  const handleLogout = async () => {
+    try {
+      // In real app, this would be:
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+      dispatch(removeUser());
+      navigate("/login");
+    } catch (error) {
+      console.log("ERROR: " + error.message);
+    }
   };
 
   return (
@@ -130,7 +151,7 @@ const Navbar = () => {
         <ProfileDropdown
           user={user}
           isEditingProfile={isEditingProfile}
-          // handleLogout={handleLogout}
+          handleLogout={handleLogout}
         />
       </div>
     </div>

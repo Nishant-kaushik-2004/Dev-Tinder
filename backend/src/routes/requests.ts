@@ -73,8 +73,8 @@ requestRouter.post("/request/send/:status/:toUserId", async (req, res) => {
     await connReq.save();
 
     res.status(200).json({
-      message: `Connection ${
-        connReq.status === "interested" ? "request sent" : "ignored"
+      message: `Match ${
+        connReq.status === "interested" ? "request sent" : "profile ignored"
       } successfully`,
       connReq,
     });

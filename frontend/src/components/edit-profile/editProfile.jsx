@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sun, Moon, X, Save, User, Camera, Sparkles } from "lucide-react";
+import { Sun, Moon, X, Save, User, Camera, Sparkles, Edit } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { addUser } from "../../store/userSlice";
@@ -278,7 +278,7 @@ const EditProfilePage = () => {
       <div className="xl:text-center">
         <div className="inline-flex justify-center items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-            <Sparkles className="w-6 h-6 text-primary-content" />
+            <Edit className="w-6 h-6 text-primary-content" />
           </div>
           <h1 className="text-3xl font-bold text-base-content">Edit Profile</h1>
         </div>
@@ -311,7 +311,7 @@ const EditProfilePage = () => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        className={`input input-bordered w-full ${
+                        className={`input input-bordered w-full focus:outline-none ${
                           errors.firstName ? "input-error" : ""
                         }`}
                         placeholder="Enter first name"
@@ -339,7 +339,7 @@ const EditProfilePage = () => {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        className={`input input-bordered w-full ${
+                        className={`input input-bordered w-full focus:outline-none ${
                           errors.lastName ? "input-error" : ""
                         }`}
                         placeholder="Enter last name"
@@ -368,7 +368,7 @@ const EditProfilePage = () => {
                         name="age"
                         value={formData.age}
                         onChange={handleInputChange}
-                        className={`input input-bordered w-full ${
+                        className={`input input-bordered w-full focus:outline-none ${
                           errors.age ? "input-error" : ""
                         }`}
                         placeholder="18+"
@@ -394,7 +394,7 @@ const EditProfilePage = () => {
                         name="gender"
                         value={formData.gender}
                         onChange={handleInputChange}
-                        className={`select select-bordered w-full ${
+                        className={`select select-bordered w-full focus:outline-none ${
                           errors.gender ? "select-error" : ""
                         }`}
                         disabled={isLoading}
@@ -427,7 +427,7 @@ const EditProfilePage = () => {
                       name="photoUrl"
                       value={formData.photoUrl}
                       onChange={handleInputChange}
-                      className={`input input-bordered w-full ${
+                      className={`input input-bordered w-full focus:outline-none ${
                         errors.photoUrl ? "input-error" : ""
                       }`}
                       placeholder="https://example.com/photo.jpg"
@@ -454,7 +454,7 @@ const EditProfilePage = () => {
                       name="about"
                       value={formData.about}
                       onChange={handleInputChange}
-                      className="textarea textarea-bordered h-32 resize-none w-full"
+                      className="textarea textarea-bordered h-32 resize-none w-full focus:outline-none"
                       placeholder="Tell potential matches about yourself..."
                       maxLength={500}
                       disabled={isLoading}
@@ -474,7 +474,7 @@ const EditProfilePage = () => {
                         value={skillInput}
                         onChange={handleSkillInputChange}
                         onKeyDown={handleSkillKeyPress}
-                        className="input input-bordered w-full"
+                        className="input input-bordered w-full focus:outline-none"
                         placeholder="Type a skill and press Enter"
                         disabled={isLoading}
                       />
@@ -501,7 +501,7 @@ const EditProfilePage = () => {
 
                     {/* Selected Skills */}
                     {formData.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
+                      <div className="flex flex-wrap gap-2 mt-3 ">
                         {formData.skills.map((skill, index) => (
                           <div
                             key={index}

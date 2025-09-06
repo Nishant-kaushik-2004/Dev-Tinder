@@ -13,7 +13,7 @@ declare global {
 
 const userRouter = express.Router();
 
-const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills";
+const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills location isFresher experience company jobTitle profileViews";
 
 // Get all the pending connections of the loggedIn user.
 userRouter.get("/user/requests/received", async (req, res) => {

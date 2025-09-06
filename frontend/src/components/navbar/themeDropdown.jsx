@@ -9,7 +9,7 @@ export default function ThemeDropdown() {
     themeChange(false); // Initialize theme-change for React
 
     // Get current theme from localStorage or default to light
-    const savedTheme = localStorage.getItem("theme") || "light";
+    const savedTheme = localStorage.getItem("theme") || "dark";
     setCurrentTheme(savedTheme);
   }, []);
 

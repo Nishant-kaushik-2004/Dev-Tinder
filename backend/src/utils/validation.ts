@@ -51,16 +51,23 @@ export const loginDataValidation = ({ email, password }: loginInput) => {
   return "";
 };
 
-export const isEditValid = (edits) => {
-  const allowedFields = [
-    "firstName",
-    "lastName",
-    "age",
-    "gender",
-    "photoUrl",
-    "about",
-    "skills",
-  ];
+export const allowedFields = [
+  "firstName",
+  "lastName",
+  "age",
+  "gender",
+  "photoUrl",
+  "about",
+  "skills",
+  "isFresher",
+  "location",
+  "company",
+  "profileViews",
+  "jobTitle",
+  "experience",
+];
+
+export const isEditValid = (edits: {}) => {
   const isEditAllowed = Object.keys(edits).every((field) =>
     allowedFields.includes(field)
   );

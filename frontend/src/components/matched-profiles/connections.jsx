@@ -23,7 +23,7 @@ const MatchesPage = () => {
     const fetchConnections = async () => {
       setIsLoading(true);
       // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // In real app, this would be:
       // const response = await axios.get('/api/connections/accepted');

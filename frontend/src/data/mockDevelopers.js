@@ -63,111 +63,246 @@ export const notificationsList = [
   { title: "Profile View", message: "Emily viewed your profile" },
 ];
 
-
 export const developers = [
-    {
-      _id: "1",
-      firstName: "Harry",
-      lastName: "Brook",
-      email: "sarah.chen@email.com",
-      age: 26,
-      gender: "female",
-      photoUrl:
-        "https://as1.ftcdn.net/v2/jpg/05/40/63/14/1000_F_540631446_a39tc1A3Smh7U2xbyijSEKGrx4FbJW6F.jpg",
-      about:
-        "Full-stack developer passionate about React and Node.js. I love building scalable applications and mentoring junior developers. When I'm not coding, you'll find me exploring new coffee shops or hiking trails!",
-      skills: [
-        "React",
-        "Node.js",
-        "TypeScript",
-        "MongoDB",
-        "AWS",
-        "GraphQL",
-        "Docker",
-      ],
-    },
-    {
-      _id: "2",
-      firstName: "Alex",
-      lastName: "Rodriguez",
-      email: "alex.rodriguez@email.com",
-      age: 29,
-      gender: "male",
-      photoUrl:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-      about:
-        "Backend engineer specializing in microservices and cloud architecture. I'm passionate about system design and building robust, scalable solutions. Love discussing tech over a good craft beer!",
-      skills: [
-        "Python",
-        "Django",
-        "PostgreSQL",
-        "Docker",
-        "Kubernetes",
-        "Redis",
-        "Microservices",
-      ],
-    },
-    {
-      _id: "3",
-      firstName: "Emily",
-      lastName: "Johnson",
-      email: "emily.johnson@email.com",
-      age: 24,
-      gender: "female",
-      photoUrl:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-      about:
-        "Frontend developer with an eye for design. I create beautiful, accessible user experiences and believe great UX can change the world. Always learning new technologies and design patterns!",
-      skills: [
-        "Vue.js",
-        "CSS",
-        "JavaScript",
-        "Figma",
-        "Adobe XD",
-        "Sass",
-        "React",
-      ],
-    },
-    {
-      _id: "4",
-      firstName: "Marcus",
-      lastName: "Thompson",
-      email: "marcus.thompson@email.com",
-      age: 31,
-      gender: "male",
-      photoUrl:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-      about:
-        "DevOps engineer and cloud architect. I automate everything and build infrastructure that scales. When not optimizing CI/CD pipelines, I enjoy rock climbing and photography.",
-      skills: [
-        "AWS",
-        "Terraform",
-        "Jenkins",
-        "Python",
-        "Bash",
-        "Monitoring",
-        "Security",
-      ],
-    },
-    {
-      _id: "5",
-      firstName: "Priya",
-      lastName: "Patel",
-      email: "priya.patel@email.com",
-      age: 27,
-      gender: "female",
-      photoUrl:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-      about:
-        "Mobile app developer focused on creating delightful user experiences. I work with both iOS and Android platforms and love the intersection of technology and human psychology.",
-      skills: [
-        "React Native",
-        "Swift",
-        "Kotlin",
-        "Flutter",
-        "Firebase",
-        "UI/UX",
-        "Analytics",
-      ],
-    },
-  ];
+  {
+    _id: "1",
+    firstName: "Harry",
+    lastName: "Brook",
+    email: "sarah.chen@email.com",
+    age: 26,
+    gender: "male",
+    photoUrl:
+      "https://as1.ftcdn.net/v2/jpg/05/40/63/14/1000_F_540631446_a39tc1A3Smh7U2xbyijSEKGrx4FbJW6F.jpg",
+    about:
+      "Full-stack developer passionate about React and Node.js. I love building scalable applications and mentoring junior developers. When I'm not coding, you'll find me exploring new coffee shops or hiking trails!",
+    skills: [
+      "React",
+      "Node.js",
+      "TypeScript",
+      "MongoDB",
+      "AWS",
+      "GraphQL",
+      "Docker",
+    ],
+  },
+  {
+    _id: "2",
+    firstName: "Alex",
+    lastName: "Rodriguez",
+    email: "alex.rodriguez@email.com",
+    age: 29,
+    gender: "male",
+    photoUrl:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Backend engineer specializing in microservices and cloud architecture. I'm passionate about system design and building robust, scalable solutions. Love discussing tech over a good craft beer!",
+    skills: [
+      "Python",
+      "Django",
+      "PostgreSQL",
+      "Docker",
+      "Kubernetes",
+      "Redis",
+      "Microservices",
+    ],
+  },
+  {
+    _id: "3",
+    firstName: "Emily",
+    lastName: "Johnson",
+    email: "emily.johnson@email.com",
+    age: 24,
+    gender: "female",
+    photoUrl:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Frontend developer with an eye for design. I create beautiful, accessible user experiences and believe great UX can change the world. Always learning new technologies and design patterns!",
+    skills: [
+      "Vue.js",
+      "CSS",
+      "JavaScript",
+      "Figma",
+      "Adobe XD",
+      "Sass",
+      "React",
+    ],
+  },
+  {
+    _id: "4",
+    firstName: "Marcus",
+    lastName: "Thompson",
+    email: "marcus.thompson@email.com",
+    age: 31,
+    gender: "male",
+    photoUrl:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    about:
+      "DevOps engineer and cloud architect. I automate everything and build infrastructure that scales. When not optimizing CI/CD pipelines, I enjoy rock climbing and photography.",
+    skills: [
+      "AWS",
+      "Terraform",
+      "Jenkins",
+      "Python",
+      "Bash",
+      "Monitoring",
+      "Security",
+    ],
+  },
+  {
+    _id: "5",
+    firstName: "Priya",
+    lastName: "Patel",
+    email: "priya.patel@email.com",
+    age: 27,
+    gender: "female",
+    photoUrl:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Mobile app developer focused on creating delightful user experiences. I work with both iOS and Android platforms and love the intersection of technology and human psychology.",
+    skills: [
+      "React Native",
+      "Swift",
+      "Kotlin",
+      "Flutter",
+      "Firebase",
+      "UI/UX",
+      "Analytics",
+    ],
+  },
+  {
+    _id: "1",
+    firstName: "Sophia",
+    lastName: "Johnson",
+    email: "sophia.johnson@email.com",
+    age: 26,
+    gender: "female",
+    photoUrl:
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Frontend developer with a knack for crafting beautiful and intuitive user interfaces. I love turning complex problems into elegant solutions.",
+    skills: ["JavaScript", "React", "TypeScript", "Tailwind CSS", "Next.js"],
+  },
+  {
+    _id: "2",
+    firstName: "Liam",
+    lastName: "Anderson",
+    email: "liam.anderson@email.com",
+    age: 31,
+    gender: "male",
+    photoUrl:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Full-stack engineer with a focus on building scalable APIs and intuitive web applications. Passionate about developer experience and open source.",
+    skills: ["Node.js", "Express", "MongoDB", "React", "GraphQL", "AWS"],
+  },
+  {
+    _id: "3",
+    firstName: "Isabella",
+    lastName: "Martinez",
+    email: "isabella.martinez@email.com",
+    age: 28,
+    gender: "female",
+    photoUrl:
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "UI/UX designer who loves blending creativity with functionality. Obsessed with details and making digital experiences delightful.",
+    skills: ["Figma", "Adobe XD", "Sketch", "Prototyping", "Wireframing"],
+  },
+  {
+    _id: "4",
+    firstName: "Ethan",
+    lastName: "Wright",
+    email: "ethan.wright@email.com",
+    age: 34,
+    gender: "male",
+    photoUrl:
+      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Data scientist with expertise in machine learning and AI. I enjoy finding patterns in data and applying them to solve real-world problems.",
+    skills: [
+      "Python",
+      "TensorFlow",
+      "Scikit-learn",
+      "SQL",
+      "Data Visualization",
+    ],
+  },
+  {
+    _id: "5",
+    firstName: "Olivia",
+    lastName: "Brown",
+    email: "olivia.brown@email.com",
+    age: 27,
+    gender: "female",
+    photoUrl:
+      "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Mobile app developer passionate about crafting smooth and intuitive experiences for iOS and Android users. Always exploring new frameworks.",
+    skills: ["Swift", "Kotlin", "React Native", "Flutter", "Firebase"],
+  },
+  {
+    _id: "6",
+    firstName: "Noah",
+    lastName: "Patel",
+    email: "noah.patel@email.com",
+    age: 30,
+    gender: "male",
+    photoUrl:
+      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "DevOps engineer ensuring smooth deployments and robust cloud infrastructure. I thrive on automation and efficiency.",
+    skills: ["AWS", "Docker", "Kubernetes", "Terraform", "CI/CD", "Linux"],
+  },
+  {
+    _id: "7",
+    firstName: "Mia",
+    lastName: "Garcia",
+    email: "mia.garcia@email.com",
+    age: 25,
+    gender: "female",
+    photoUrl:
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Software tester focused on ensuring high-quality products. Skilled in automation frameworks and passionate about bug-free experiences.",
+    skills: ["Selenium", "Cypress", "Jest", "Mocha", "Postman"],
+  },
+  {
+    _id: "8",
+    firstName: "James",
+    lastName: "Kim",
+    email: "james.kim@email.com",
+    age: 33,
+    gender: "male",
+    photoUrl:
+      "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Cybersecurity specialist with a mission to safeguard applications and infrastructure. Enjoys solving puzzles and ethical hacking challenges.",
+    skills: ["Network Security", "Penetration Testing", "Python", "Wireshark"],
+  },
+  {
+    _id: "9",
+    firstName: "Ava",
+    lastName: "Lee",
+    email: "ava.lee@email.com",
+    age: 24,
+    gender: "female",
+    photoUrl:
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1000&q=80",
+    about:
+      "Junior web developer passionate about learning and contributing to meaningful projects. Currently exploring modern JavaScript frameworks.",
+    skills: ["HTML", "CSS", "JavaScript", "React", "Git"],
+  },
+  {
+    _id: "10",
+    firstName: "William",
+    lastName: "Nguyen",
+    email: "william.nguyen@email.com",
+    age: 32,
+    gender: "male",
+    photoUrl:
+      "https://spu.edu/-/media/academics/school-of-health-sciences/body-images/student-stories/william-nguyen.ashx?iar=0&hash=AB2D72B70383A351B3D8746EA1664C3E",
+    about:
+      "AI/ML engineer passionate about building models that create real-world impact. Interested in deep learning, NLP, and computer vision.",
+    skills: ["Python", "PyTorch", "TensorFlow", "NLP", "Computer Vision"],
+  },
+];
