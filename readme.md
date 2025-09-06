@@ -1,6 +1,7 @@
 # 🚀 devTinder – Developer Matching Platform
 
 ![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react)
+![Redux Toolkit](https://img.shields.io/badge/Redux%20Toolkit-State%20Management-764ABC?logo=redux)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-43853D?logo=node.js)
 ![Express](https://img.shields.io/badge/Express.js-Backend-lightgrey?logo=express)
 ![Socket.io](https://img.shields.io/badge/Socket.io-Real--Time-010101?logo=socket.io)
@@ -40,27 +41,35 @@
 
 ```bash
 devtinder/
-├── Frontend/               # React frontend
+├── frontend/               # React frontend
 │   ├── src/
 │   └── public/
-├── Backend/               # Node.js backend
-│   ├── models/           # MongoDB Schemas (Users, Requests, Notifications)
-│   ├── routes/           
-│   ├── controllers/      
-│   └── socket/           # Socket.io handlers
+├── backend/               # Node.js backend
+|   ├── src/
+|        ├── config/
+│        ├── models/           # MongoDB Schemas (Users, Requests, Notifications)
+│        ├── routes/           
+│        ├── utils/      
+│        └── socket/           # Socket.io handlers
 └── README.md
 ```
 
 ## 📸 Screenshots
 
 ### 🔹 Landing Page
-![Landing Page](./screenshots/landing.png)
+![Landing Page](./frontend/screenshots/feed.png)
 
 ### 🔹 Profile Page
-![Profile Page](./screenshots/profile.png)
+![Profile Page](./frontend/screenshots/profile.png)
 
-### 🔹 Chat & Notifications
-![Chat Screenshot](./screenshots/chat.png)
+<!-- ### 🔹 Chat & Notifications
+![Chat Screenshot](./frontend/screenshots/chat.png) -->
+
+### 🔹 Edit Profile Page
+![Edit Profile Page Screenshot](./frontend/screenshots/editProfile.png)
+
+### 🔹 Matches Page
+![Matches Page Screenshot](./frontend/screenshots/matches.png)
 
 ---
 
@@ -100,6 +109,7 @@ npm run start
 ## 📊 Core Pages
 - **🏠 Landing Page** (Feed Page)
 - **👤 Profile Page**  
+- **👤 Edit Profile Page**  
 - **🤝 Match Requests**  
 - **💬 Chat**  
 - **🔔 Notifications**  
@@ -131,7 +141,7 @@ This project is licensed under the **MIT License** – free to use and extend.
 ---
 
 ## 🙌 Acknowledgements
-- React + Tailwind CSS + daisyUI  
+- React + Redux Toolkit +Tailwind CSS + daisyUI  
 - Node.js + Express.js + Socket.io  
 - MongoDB + Mongoose  
 - Razorpay + WebRTC  
