@@ -236,7 +236,7 @@ const DevTinderSignup = () => {
                   disabled={isLoading}
                 />
                 {errors.firstName && (
-                  <label className="label">
+                  <label className="">
                     <span
                       className="label-text-alt text-error text-xs"
                       role="alert"
@@ -264,7 +264,7 @@ const DevTinderSignup = () => {
                   disabled={isLoading}
                 />
                 {errors.lastName && (
-                  <label className="label">
+                  <label className="">
                     <span
                       className="label-text-alt text-error text-xs"
                       role="alert"

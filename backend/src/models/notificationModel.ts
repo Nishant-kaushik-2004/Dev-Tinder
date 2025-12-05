@@ -51,7 +51,7 @@ const notificationSchema = new Schema<INotification>(
     message: {
       type: String,
       required: true,
-      maxlength: [100, "Job title should be under 100 letters"],
+      maxlength: [100, "Message length should be under 100 characters"],
     },
   },
   { timestamps: true }

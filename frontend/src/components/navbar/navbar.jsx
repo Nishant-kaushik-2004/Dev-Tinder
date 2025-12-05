@@ -74,7 +74,11 @@ const Navbar = () => {
   return (
     <div className="navbar bg-base-100 shadow-xl border-b border-base-300 px-4 fixed top-0 z-50">
       <div className="navbar-start">
-        <DropDownMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+        <DropDownMenu
+          isDeviceIndependentVis={false}
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+        />
         <Link
           to="/"
           className="btn btn-ghost text-xl font-bold text-base-content"

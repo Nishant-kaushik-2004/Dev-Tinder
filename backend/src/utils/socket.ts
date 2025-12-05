@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 
 interface ServerToClientEvents {
-  messageRecieved: () => void;
+  messageRecieved: (data: { firstName: string; text: string }) => void;
   basicEmit: (a: number, b: string, c: Buffer) => void;
   withAck: (d: string, callback: (e: number) => void) => void;
 }
@@ -23,8 +23,9 @@ interface SocketData {
 
 import { Server as HttpServer } from "http";
 import crypto from "crypto";
+import { Chat, Message } from "../models/chatModel.js";
 
-const getSecretRoomId = (userId, targetUserId) => {
+const getSecretRoomId = (userId: String, targetUserId: String) => {
   const roomId = [userId, targetUserId].sort().join("_");
   return crypto.createHash("sha256").update(roomId).digest("hex");
 };
@@ -50,11 +51,36 @@ const InitializeSocket = (server: HttpServer) => {
       socket.join(roomId);
     });
 
-    socket.on("sendMessage", ({ firstName, userId, targetUserId, text }) => {
-      const roomId = getSecretRoomId(userId, targetUserId);
-      console.log(firstName + " " + text);
-      io.to(roomId).emit("messageRecieved", { firstName, text });
-    });
+    socket.on(
+      "sendMessage",
+      async ({ firstName, userId, targetUserId, text }) => {
+        const roomId = getSecretRoomId(userId, targetUserId);
+        console.log(
+          firstName + " has sent message to " + targetUserId + " -> " + text
+        );
+        io.to(roomId).emit("messageRecieved", { firstName, text });
+
+        let existingChat = await Chat.findOne({
+          participants: { $all: [userId, targetUserId] },
+        });
+
+        if (!existingChat) {
+          console.log(`No existing chat found between ${userId} and ${targetUserId}. Creating new chat.`);
+          const newChat = new Chat({
+            participants: [userId, targetUserId],
+          });
+          await newChat.save();
+          existingChat = newChat;
+        }
+
+        const message = new Message({
+          chatId: existingChat._id,
+          sender: userId,
+          text: text,
+        });
+        await message.save();
+      }
+    );
 
     socket.on("disconnect", () => {});
   });

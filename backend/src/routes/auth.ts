@@ -107,7 +107,7 @@ authRouter.post("/login", async (req: Request, res: Response) => {
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
-    return res.status(401).json({ message: "ERROR: " + errorMessage });
+    return res.status(400).json({ message: "ERROR: " + errorMessage });
   }
 });
 

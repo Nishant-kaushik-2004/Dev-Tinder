@@ -13,6 +13,9 @@ import MatchesPage from "./components/matched-profiles/connections";
 import MatchRequests from "./components/match-request/matchRequests";
 import UserProfilePage from "./components/user-profile/userProfilePage";
 import Chat from "./components/chat-page/chat";
+import MessagesPage from "./components/messages/messagesPage";
+import ChatWindow from "./components/messages/chatWindow";
+import ChatWindowFallback from "./components/messages/chatWindowFallback";
 
 const App = () => {
   // Initialize theme from localStorage
@@ -58,7 +61,13 @@ const App = () => {
             <Route path="connections" element={<MatchesPage />} />
             <Route path="requests" element={<MatchRequests />} />
             <Route path="user" element={<UserProfilePage />} />
-            <Route path="chat" element={<Chat />} />
+            {/* <Route path="chat" element={<Chat />} /> */}
+          </Route>
+
+          {/* Messages Page with nested routes outside layout */}
+          <Route path="/messages" element={<MessagesPage />}>
+            <Route index element={<ChatWindowFallback />} />
+            <Route path=":chatId" element={<ChatWindow />} />
           </Route>
 
           {/* Auth routes outside layout */}

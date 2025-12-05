@@ -13,6 +13,7 @@ import userAuth from "./middleware/auth.js";
 import cors from "cors";
 import { createServer } from "node:http";
 import InitializeSocket from "./utils/socket.js";
+import chatRouter  from "./routes/chats.js";
 
 const app = express();
 const server = createServer(app);
@@ -36,7 +37,14 @@ app.use(express.json()); // works as middleware for every route as it parses the
 app.use(cookieParser()); // works as middleware for every route as it parses the cookies present in the request.
 
 // Send the request from wherever it got the first
-app.use(authRouter, userAuth, profileRouter, requestRouter, userRouter); // this is app level Middleware, Here userAuth is applied to all routes declared after it in the middleware chain.
+app.use(
+  authRouter,
+  userAuth,
+  profileRouter,
+  requestRouter,
+  userRouter,
+  chatRouter
+); // this is app level Middleware, Here userAuth is applied to all routes declared after it in the middleware chain.
 // 🔄 Option 1: App-Level Middleware in app.use -> Used when most routes require auth.
 // 🎯 Option 2: Router-Level Middleware ->  Use when only specific route groups need protection.
 

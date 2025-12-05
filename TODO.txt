@@ -1,0 +1,2 @@
+Shift the app.jsx page useEffect for loading loggedIn user profile to inside body, as it should not run for login and signup pages (user is not present).
+Otherwise make it fetch only for routes other than login and signup.

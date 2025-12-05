@@ -1,9 +1,13 @@
 import { Code, MessageCircle, Users } from "lucide-react";
 import { Link } from "react-router";
 
-const DropDownMenu = ({ isMenuOpen, setIsMenuOpen }) => {
+const DropDownMenu = ({
+  isMenuOpen,
+  setIsMenuOpen,
+  isDeviceIndependentVis,
+}) => {
   return (
-    <div className="lg:hidden relative">
+    <div className={`${isDeviceIndependentVis?"":"lg:hidden"} relative`}>
       {/* Hamburger Button */}
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
