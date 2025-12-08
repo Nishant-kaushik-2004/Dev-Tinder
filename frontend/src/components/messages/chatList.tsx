@@ -5,26 +5,40 @@ import SearchBar from "./searchBar";
 import DropDownMenu from "../navbar/mobileNavigation";
 import { dummyUsers } from "../../data/mockMessages";
 import { useSelector } from "react-redux";
+import { Chat } from "../../utils/types";
+import { RootState } from "../../store/store";
+
+interface ChatListProps {
+  activeChat: Chat | null;
+  onChatSelect: (chat: Chat) => void;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+  isMobile: boolean;
+  onToggleSidebar: () => void;
+  isLoading: boolean;
+}
 
 // Chat List Component
-const ChatList = ({
+const ChatList: React.FC<ChatListProps> = ({
   activeChat,
   onChatSelect,
   searchValue,
   onSearchChange,
   isMobile,
   onToggleSidebar,
+  isLoading,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const chats = useSelector((store) => store.chats);
+  const chats = useSelector((store: RootState) => store.chats);
 
+  // Filter users based on search input and exclude those who already have chats so that they don't appear in "Start new chat" list
   const filteredUsers = useMemo(() => {
     if (!searchValue) return [];
     return dummyUsers.filter(
       (user) =>
         user.name.toLowerCase().includes(searchValue.toLowerCase()) &&
-        !chats.find((chat) => chat.userId === user.id)
+        !chats.find((chat) => chat.participantInfo._id === user.id)
       // Remove users who already have chats in sidebar chat list
     );
   }, [searchValue, dummyUsers, chats]);
@@ -64,7 +78,12 @@ const ChatList = ({
                 key={user.id}
                 onClick={() =>
                   onChatSelect({
-                    userId: user.id,
+                    participantInfo: {
+                      _id: user.id,
+                      name: user.name,
+                      photoUrl: user.avatar,
+                      about: user.bio,
+                    },
                     messages: [],
                     unreadCount: 0,
                   })
@@ -96,14 +115,13 @@ const ChatList = ({
             </div>
           ) : (
             chats.map((chat) => {
-              const user = dummyUsers.find((u) => u.id === chat.userId);
               return (
                 <ChatItem
-                  key={chat.userId}
+                  key={chat.chatId}
                   chat={chat}
-                  user={user}
-                  isActive={activeChat?.userId === chat.userId}
+                  isActive={activeChat?.chatId === chat.chatId}
                   onClick={() => onChatSelect(chat)}
+                  isLoading
                 />
               );
             })

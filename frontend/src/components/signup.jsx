@@ -3,7 +3,7 @@ import { Eye, EyeOff, Sun, Moon, Loader2 } from "lucide-react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
-import { addUser } from "../store/userSlice";
+import { setUser } from "../store/userSlice";
 
 /**
  * DevTinder Signup Page Component
@@ -160,7 +160,7 @@ const DevTinderSignup = () => {
 
       const { user, message } = response.data;
       
-      dispatch(addUser(user));
+      dispatch(setUser(user));
 
       setToast({
         message: message || "Account created successfully!",

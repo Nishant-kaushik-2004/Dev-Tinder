@@ -12,10 +12,10 @@ chatRouter.get("/chats", async (req: Request, res: Response) => {
     const userObjectId = new mongoose.Types.ObjectId(loggedInUserId);
 
     const pipeline = [
-      // 1) only chats where the logged-in user is a participant
+      // 1) Only chats where logged-in user is a participant
       { $match: { participants: userObjectId } },
 
-      // 2) lookup last message for this chat (most recent)
+      // 2) Lookup last message
       {
         $lookup: {
           from: "messages",
@@ -37,7 +37,7 @@ chatRouter.get("/chats", async (req: Request, res: Response) => {
         },
       },
 
-      // 3) count unread messages for this user
+      // 3) Count unread messages for this user
       {
         $lookup: {
           from: "messages",
@@ -46,7 +46,6 @@ chatRouter.get("/chats", async (req: Request, res: Response) => {
             {
               $match: {
                 $expr: { $eq: ["$chatId", "$$chatId"] },
-                // message is unread if loggedInUserId is NOT in seenBy
                 seenBy: { $ne: userObjectId },
               },
             },
@@ -56,7 +55,7 @@ chatRouter.get("/chats", async (req: Request, res: Response) => {
         },
       },
 
-      // 4) determine the other participant id (assumes exactly 2 participants)
+      // 4) Determine the *other* participant
       {
         $addFields: {
           otherUserId: {
@@ -74,12 +73,41 @@ chatRouter.get("/chats", async (req: Request, res: Response) => {
         },
       },
 
-      // 5) project into desired minimal shape
+      // 5) Lookup user details for other participant
+      {
+        $lookup: {
+          from: "users",
+          localField: "otherUserId",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                firstName: 1,
+                lastName: 1,
+                email: 1,
+                photoUrl: 1,
+                about: 1,
+              },
+            },
+          ],
+          as: "participantInfo",
+        },
+      },
+
+      // Convert array → single object
+      {
+        $addFields: {
+          participantInfo: { $arrayElemAt: ["$participantInfo", 0] },
+        },
+      },
+
+      // 6) Final projection
       {
         $project: {
           _id: 0,
           chatId: "$_id",
-          otherUserId: 1,
+          participantInfo: 1,
           lastMessage: { $arrayElemAt: ["$lastMessageArr.text", 0] },
           timestamp: { $arrayElemAt: ["$lastMessageArr.createdAt", 0] },
           unreadCount: {
@@ -88,28 +116,27 @@ chatRouter.get("/chats", async (req: Request, res: Response) => {
         },
       },
 
-      // 6) sort chats by last activity (most recent first).
-      // Sort by timestamp (nulls last in descending order)
+      // 7) Sort by last message timestamp
       {
         $sort: { timestamp: -1 },
       },
-    ] as const;
+    ];
 
     // Run pipeline on Chat collection
     const rawResults = await Chat.aggregate(pipeline as any).allowDiskUse(true);
 
-    // Map output to exactly desired client schema (string ids and ISO timestamps)
-    const results = rawResults.map((c) => ({
-      userId: c.otherUserId ? String(c.otherUserId) : null,
-      lastMessage: c.lastMessage || "",
-      timestamp: c.timestamp ? new Date(c.timestamp).toISOString() : null,
-      unreadCount: c.unreadCount || 0,
-      chatId: c.chatId ? String(c.chatId) : null,
-    }));
+    // // Map output to exactly desired client schema (string ids and ISO timestamps)
+    // const results = rawResults.map((c) => ({
+    //   userId: c.otherUserId ? String(c.otherUserId) : null,
+    //   lastMessage: c.lastMessage || "",
+    //   timestamp: c.timestamp ? new Date(c.timestamp).toISOString() : null,
+    //   unreadCount: c.unreadCount || 0,
+    //   chatId: c.chatId ? String(c.chatId) : null,
+    // }));
 
     res
       .status(200)
-      .json({ message: "Chats fetched successfully", chats: results });
+      .json({ message: "Chats fetched successfully", chats: rawResults });
     return;
   } catch (err: unknown) {
     console.error("GET /api/chats error:", err);

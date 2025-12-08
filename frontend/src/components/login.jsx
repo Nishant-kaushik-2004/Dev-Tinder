@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff, Sun, Moon, Loader2 } from "lucide-react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router";
-import { addUser } from "../store/userSlice";
+import { setUser } from "../store/userSlice";
 import { useDispatch } from "react-redux";
 
 /**
@@ -124,7 +124,7 @@ const LoginPage = () => {
 
       const { user } = response.data;
 
-      dispatch(addUser(user));
+      dispatch(setUser(user));
 
       // If using remember me:
       // if (formData.rememberMe) {

@@ -1,18 +1,19 @@
-import { useState, useEffect, useCallback, use } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ArrowRightToLine } from "lucide-react";
-import { dummyUsers } from "../../data/mockMessages";
 import SkeletonLoader from "./messagesSkeletonLoader";
 import ChatList from "./chatList";
 import createSocketConnection from "../../utils/socket";
 import { Outlet, useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { markChatAsRead, setChats, updateChat } from "../../store/chatsSlice";
+import { setChats } from "../../store/chatsSlice";
 import axios from "axios";
+import { Chat } from "../../utils/types";
+import { RootState } from "../../store/store";
 
 // Main Messages Page Component
 const MessagesPage = () => {
   // const [chats, setChats] = useState([]);
-  const [activeChat, setActiveChat] = useState(null);
+  const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [showSidebar, setShowSidebar] = useState(true);
@@ -20,14 +21,15 @@ const MessagesPage = () => {
 
   // To navigate programmatically between chats
   const navigate = useNavigate();
+  // To update chats inside chatSlice in redux store
   const dispatch = useDispatch();
 
   const { chatId } = useParams();
 
-  const loggedInUser = useSelector((store) => store.user);
+  const loggedInUser = useSelector((store: RootState) => store.loggedInUser);
+  const chats = useSelector((store: RootState) => store.chats);
 
-  const chats = useSelector((store) => store.chats);
-
+  // Set active chat when chatId param changes
   useEffect(() => {
     if (chatId) {
       const selectedChat = chats.find((chat) => chat.chatId === chatId);
@@ -35,7 +37,7 @@ const MessagesPage = () => {
     }
   }, [chatId, chats]);
 
-  const targetUserId = activeChat ? activeChat.userId : null;
+  const targetUserId = activeChat ? activeChat.participantInfo._id : null;
 
   // Fetch chats from backend
   useEffect(() => {
@@ -44,13 +46,14 @@ const MessagesPage = () => {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/chats?userId=${
-            loggedInUser.userId
+            loggedInUser._id
           }`,
           { withCredentials: true }
         );
         if (!res.data.chats) {
           throw new Error("No chats found");
         }
+        console.log(res.data.chats);
         // setChats(dummyChats);
         dispatch(setChats(res.data.chats));
       } catch (error) {
@@ -60,7 +63,7 @@ const MessagesPage = () => {
       }
     }
     fetchChats();
-  }, [loggedInUser.userId, dispatch]);
+  }, [loggedInUser._id, dispatch]);
 
   // Set Active Chat from params targetUserId to select the chat
   // useEffect(() => {
@@ -87,7 +90,7 @@ const MessagesPage = () => {
     const socket = createSocketConnection();
 
     socket.emit("joinChat", {
-      userId: loggedInUser.userId,
+      userId: loggedInUser._id,
       targetUserId: targetUserId,
     });
 
@@ -95,15 +98,14 @@ const MessagesPage = () => {
     return () => {
       socket.disconnect();
     };
-  }, [targetUserId, loggedInUser.userId]);
+  }, [targetUserId, loggedInUser._id]);
 
   const handleChatSelect = useCallback(
-    (chat) => {
-      if (activeChat && activeChat.userId === chat.userId) return;
-      else {
-        navigate(`/messages/${chat.chatId}`);
-      } // This userId is actually the userId of the person to whom we want to chat not.
+    (chat: Chat) => {
+      if (activeChat && activeChat.chatId === chat.chatId) return;
+
       // If the chat is already active, do nothing
+      navigate(`/messages/${chat.chatId}`);
 
       // setActiveChat(chat);
       if (isMobile) {
@@ -166,6 +168,7 @@ const MessagesPage = () => {
             onSearchChange={setSearchValue}
             isMobile={isMobile}
             onToggleSidebar={toggleSidebar}
+            isLoading={isLoading}
           />
         )}
       </div>
@@ -176,7 +179,6 @@ const MessagesPage = () => {
         <Outlet
           context={{
             chat: activeChat,
-            // user: activeUser,
             // onSendMessage: handleSendMessage,
             loggedInUser,
             onBack: handleBack,

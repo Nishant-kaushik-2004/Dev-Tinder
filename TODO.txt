@@ -1,2 +1,4 @@
-Shift the app.jsx page useEffect for loading loggedIn user profile to inside body, as it should not run for login and signup pages (user is not present).
+1. Shift the app.jsx page useEffect for loading loggedIn user profile to inside body, as it should not run for login and signup pages (user is not present).
 Otherwise make it fetch only for routes other than login and signup.
+
+2. Add status(online/offline/away/seen long time ago/etc.) field also to the user schema or after dynamically.

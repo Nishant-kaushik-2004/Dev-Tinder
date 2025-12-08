@@ -1,30 +1,47 @@
 import { createSlice } from "@reduxjs/toolkit";
-const initialState = {
+
+export interface IUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  age?: number;
+  gender?: string;
+  photoUrl: string;
+  about: string;
+  skills?: string[];
+  location?: string;
+  jobTitle?: string;
+  company?: string;
+  experience?: number;
+  isFresher?: boolean;
+  profileViews?: number;
+}
+
+const initialState: IUser = {
+  _id: "",
   firstName: "",
   lastName: "",
   email: "",
-  age: null,
-  gender: "",
   photoUrl: "",
   about: "",
-  skills: [],
 };
 
 export const userSlice = createSlice({
-  name: "user",
+  name: "loggedInUser",
   initialState,
   reducers: {
-    addUser: (state, action) => {
+    setUser: (state, action) => {
       //A built-in JavaScript method that copies the properties of one or more source objects into a target object. ->  Object.assign(target, ...sources)
       Object.assign(state, action.payload);
       // return action.payload;  -> This is a very bad practice because it will change the whole user object, which will not be good If action.payload is missing some fields, they’ll be lost.
     },
-    removeUser: () => initialState,
+    clearUser: () => initialState,
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { addUser, removeUser } = userSlice.actions;
+export const { setUser, clearUser } = userSlice.actions;
 
 export default userSlice.reducer;
 

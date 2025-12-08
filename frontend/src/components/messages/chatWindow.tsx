@@ -1,5 +1,5 @@
 import { ChevronLeft, Send, User } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./messageBubble";
 import { useOutletContext, useParams } from "react-router";
 import ChatWindowFallback from "./chatWindowFallback";
@@ -7,24 +7,33 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { updateChat } from "../../store/chatsSlice";
 import createSocketConnection from "../../utils/socket";
+import { Chat, MessageType } from "../../utils/types";
+import { IUser } from "../../store/userSlice";
 
+interface ChatWindowProps {
+  chat: Chat;
+  loggedInUser: IUser;
+  onBack: () => void;
+  isMobile: boolean;
+}
 // Chat Window Component
 const ChatWindow = () => {
   const [message, setMessage] = useState("");
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const { chat, loggedInUser, onBack, isMobile } = useOutletContext();
+  const { chat, loggedInUser, onBack, isMobile }: ChatWindowProps =
+    useOutletContext();
 
   const dispatch = useDispatch();
   const params = useParams();
 
   const { chatId } = params;
 
-  // Fetch messages for the chatId
+  // Fetch messages for the chat using chatId from params
   useEffect(() => {
     async function fetchMessages() {
       setIsLoading(true);
@@ -46,13 +55,13 @@ const ChatWindow = () => {
     fetchMessages();
   }, [chatId]);
 
-  const handleSendMessage = (text) => {
+  const handleSendMessage = (text: string) => {
     const newMessage = {
       id: Date.now(),
       text,
-      sender: loggedInUser.userId,
+      sender: loggedInUser._id,
       timestamp: new Date(),
-      seenBy: [loggedInUser.userId],
+      seenBy: [loggedInUser._id],
     };
     // React passes the latest state value into the function (prev), even if multiple state updates are queued. So, no risk of losing any new messages which arrive in quick succession.
     setChatMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -62,7 +71,7 @@ const ChatWindow = () => {
     // Update last message in chat list
     dispatch(
       updateChat({
-        // userId: activeChat.userId,
+        chatId: chat.chatId,
         lastMessage: text,
         timestamp: new Date(),
         // messages: [...activeChat.messages, newMessage],
@@ -73,11 +82,11 @@ const ChatWindow = () => {
     // Initialize socket connection
     const socket = createSocketConnection();
 
-    // Emit socket event to send message
+    // Emit sendMessage socket event to send message
     socket.emit("sendMessage", {
       firstName: loggedInUser.firstName,
-      userId: loggedInUser.userId,
-      targetUserId: chat.userId,
+      userId: loggedInUser._id,
+      targetUserId: chat.participantInfo._id,
       text,
     });
   };
@@ -90,7 +99,7 @@ const ChatWindow = () => {
     }
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -117,6 +126,13 @@ const ChatWindow = () => {
   if (!chatId || !chat) {
     return <ChatWindowFallback />;
   }
+  
+  const user = {
+    name: `${chat.participantInfo.firstName} ${chat.participantInfo.lastName}`,
+    avatar: chat.participantInfo.photoUrl,
+    status: "online", // This can be dynamic based on real user status
+  };
+
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-base-100">
@@ -159,9 +175,10 @@ const ChatWindow = () => {
           <MessageBubble
             key={msg.id}
             message={msg}
-            isMe={msg.sender === "me"}
+            isMe={msg.sender === loggedInUser._id}
             showAvatar={
-              idx === 0 || chatMessages[idx - 1].sender !== msg.sender
+              // idx === 0 || chatMessages[idx - 1].sender !== msg.sender
+              msg.sender !== loggedInUser._id
             }
             avatar={user.avatar}
           />

@@ -1,7 +1,7 @@
 // Format timestamp helper
-const formatTimestamp = (date) => {
+const formatTimestamp = (date: Date) => {
   const now = new Date();
-  const diff = now - date;
+  const diff = now.getTime() - new Date(date).getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
   if (days === 0) {

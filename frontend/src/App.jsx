@@ -7,7 +7,7 @@ import Feed from "./components/discover-page/feed";
 import EditProfile from "./components/edit-profile/editProfile";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
-import { addUser } from "./store/userSlice";
+import { setUser } from "./store/userSlice";
 import axios from "axios";
 import MatchesPage from "./components/matched-profiles/connections";
 import MatchRequests from "./components/match-request/matchRequests";
@@ -37,7 +37,7 @@ const App = () => {
 
       if (response.status == 200) {
         console.log(response.data.user);
-        dispatch(addUser(response.data.user));
+        dispatch(setUser(response.data.user));
       }
     } catch (error) {
       console.log(error.response?.data);

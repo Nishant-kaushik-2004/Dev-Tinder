@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Sun, Moon, X, Save, User, Camera, Sparkles, Edit } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { addUser } from "../../store/userSlice";
 import ProfileCardPreview from "./profileCardPreview";
 import Toast from "../toast";
 import { DEVELOPER_SKILLS } from "../../data/mockDevelopers";
+import { setUser } from "../../store/userSlice";
 
 const EditProfilePage = () => {
   const user = useSelector((state) => state.user);
@@ -249,7 +249,7 @@ const EditProfilePage = () => {
         }
       );
 
-      dispatch(addUser(response.data.user));
+      dispatch(setUser(response.data.user));
 
       setToast({
         message: "Profile updated successfully!",

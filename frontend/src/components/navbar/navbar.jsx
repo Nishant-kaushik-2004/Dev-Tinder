@@ -16,7 +16,7 @@ import DropDownMenu from "./mobileNavigation";
 import ThemeDropdown from "./themeDropdown";
 import ProfileDropdown from "./profileDropdown";
 import axios from "axios";
-import { removeUser } from "../../store/userSlice";
+import { clearUser } from "../../store/userSlice";
 
 // Navbar Component
 const Navbar = () => {
@@ -45,7 +45,7 @@ const Navbar = () => {
   //   return () => document.removeEventListener("mousedown", onDocClick);
   // }, []);
 
-  const user = useSelector((state) => state.user);
+  const loggedInUser = useSelector((state) => state.loggedInUser);
 
   const isEditingProfile = location.pathname === "/profile";
 
@@ -64,7 +64,7 @@ const Navbar = () => {
           withCredentials: true,
         }
       );
-      dispatch(removeUser());
+      dispatch(clearUser());
       navigate("/login");
     } catch (error) {
       console.log("ERROR: " + error.message);
@@ -153,7 +153,7 @@ const Navbar = () => {
         </div>
 
         <ProfileDropdown
-          user={user}
+          user={loggedInUser}
           isEditingProfile={isEditingProfile}
           handleLogout={handleLogout}
         />

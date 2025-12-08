@@ -10,9 +10,7 @@ import {
 import ProfileImageModal from "./ProfileImageModal";
 import SkeletonLoader from "./SkeletonLoader";
 import ConnectionSection from "./connectionSection";
-import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { addProfileDetails } from "../../store/profileSlice";
+import {  useSelector } from "react-redux";
 import { useSearchParams } from "react-router";
 
 const UserProfilePage = () => {
@@ -25,9 +23,7 @@ const UserProfilePage = () => {
   const userId = searchParams.get("userId");
   console.log(userId);
 
-  const profileDetails = useSelector((state) => state.profileDetails);
   const user = useSelector((state) => state.user);
-  const dispatch = useDispatch();
 
   const loggedInUserId = user.id; // Mock current user ID
 
