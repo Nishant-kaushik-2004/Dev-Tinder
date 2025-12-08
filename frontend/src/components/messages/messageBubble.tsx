@@ -29,7 +29,7 @@ const MessageBubble = ({ message, isMe, showAvatar, avatar }) => (
         }`}
       >
         <span className="text-xs text-base-content/50">
-          {formatTimestamp(message.timestamp)}
+          {formatTimestamp(new Date(message.timestamp))}
         </span>
         {isMe && (
           <span className="text-base-content/50">

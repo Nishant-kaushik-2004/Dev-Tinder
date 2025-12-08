@@ -14,7 +14,6 @@ import { RootState } from "../../store/store";
 const MessagesPage = () => {
   // const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
-  const [searchValue, setSearchValue] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [showSidebar, setShowSidebar] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,8 +38,13 @@ const MessagesPage = () => {
 
   const targetUserId = activeChat ? activeChat.participantInfo._id : null;
 
-  // Fetch chats from backend
+  // Fetch chats of the logged in user from backend
   useEffect(() => {
+    // No need for this check as loggedInUser is not present initially it takes slightly more time to load from redux store so it ends unnecessarily the loading state earlier.
+    // if (!loggedInUser._id) {
+    //   setIsLoading(false);
+    //   return;
+    // }
     async function fetchChats() {
       setIsLoading(true);
       try {
@@ -65,10 +69,6 @@ const MessagesPage = () => {
     fetchChats();
   }, [loggedInUser._id, dispatch]);
 
-  // Set Active Chat from params targetUserId to select the chat
-  // useEffect(() => {
-  //
-  // }, [params]);
 
   // Handle resize
   useEffect(() => {
@@ -83,6 +83,7 @@ const MessagesPage = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Setup socket connection for real-time messaging
   useEffect(() => {
     if (!targetUserId) return;
 
@@ -129,10 +130,10 @@ const MessagesPage = () => {
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
   };
-
-  if (isLoading) {
-    return <SkeletonLoader />;
-  }
+  // No need to show skeleton loader here as we are showing it in sidebar and in chatWindow
+  // if (isLoading) {
+  //   return <SkeletonLoader />;
+  // }
 
   return (
     <div className="flex h-screen bg-base-100">
@@ -164,8 +165,6 @@ const MessagesPage = () => {
           <ChatList
             activeChat={activeChat}
             onChatSelect={handleChatSelect}
-            searchValue={searchValue}
-            onSearchChange={setSearchValue}
             isMobile={isMobile}
             onToggleSidebar={toggleSidebar}
             isLoading={isLoading}

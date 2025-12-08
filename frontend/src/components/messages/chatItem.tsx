@@ -11,17 +11,17 @@ interface ChatItemProps {
 
 // Chat Item Component
 const ChatItem = ({ chat, isActive, onClick, isLoading }: ChatItemProps) => {
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-3 p-3 rounded-lg">
-        <div className="skeleton w-12 h-12 rounded-full"></div>
-        <div className="flex-1 space-y-2">
-          <div className="skeleton h-4 w-24"></div>
-          <div className="skeleton h-3 w-full"></div>
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex items-center gap-3 p-3 rounded-lg">
+  //       <div className="skeleton w-12 h-12 rounded-full"></div>
+  //       <div className="flex-1 space-y-2">
+  //         <div className="skeleton h-4 w-24"></div>
+  //         <div className="skeleton h-3 w-full"></div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const user = chat.participantInfo;
   const fullName = `${user.firstName} ${user.lastName}`;

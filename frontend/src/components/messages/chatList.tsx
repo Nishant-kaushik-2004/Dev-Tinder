@@ -1,4 +1,4 @@
-import { ArrowLeftToLineIcon, X } from "lucide-react";
+import { ArrowLeftToLineIcon, Divide, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import ChatItem from "./chatItem";
 import SearchBar from "./searchBar";
@@ -11,8 +11,6 @@ import { RootState } from "../../store/store";
 interface ChatListProps {
   activeChat: Chat | null;
   onChatSelect: (chat: Chat) => void;
-  searchValue: string;
-  onSearchChange: (value: string) => void;
   isMobile: boolean;
   onToggleSidebar: () => void;
   isLoading: boolean;
@@ -22,13 +20,12 @@ interface ChatListProps {
 const ChatList: React.FC<ChatListProps> = ({
   activeChat,
   onChatSelect,
-  searchValue,
-  onSearchChange,
   isMobile,
   onToggleSidebar,
   isLoading,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   const chats = useSelector((store: RootState) => store.chats);
 
@@ -64,7 +61,7 @@ const ChatList: React.FC<ChatListProps> = ({
             </button>
           )}
         </div>
-        <SearchBar value={searchValue} onChange={onSearchChange} />
+        <SearchBar value={searchValue} onChange={setSearchValue} />
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -105,28 +102,40 @@ const ChatList: React.FC<ChatListProps> = ({
           </div>
         )}
 
-        <div className="p-4 space-y-2">
-          {chats.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-base-content/60">No messages yet</p>
-              <p className="text-sm text-base-content/40 mt-2">
-                Search for developers to start chatting
-              </p>
+        {isLoading ? (
+          [1, 2, 3].map(() => (
+            <div className="flex items-center gap-3 p-3 rounded-lg">
+              <div className="skeleton w-12 h-12 rounded-full"></div>
+              <div className="flex-1 space-y-2">
+                <div className="skeleton h-4 w-24"></div>
+                <div className="skeleton h-3 w-full"></div>
+              </div>
             </div>
-          ) : (
-            chats.map((chat) => {
-              return (
-                <ChatItem
-                  key={chat.chatId}
-                  chat={chat}
-                  isActive={activeChat?.chatId === chat.chatId}
-                  onClick={() => onChatSelect(chat)}
-                  isLoading
-                />
-              );
-            })
-          )}
-        </div>
+          ))
+        ) : (
+          <div className="p-4 space-y-2">
+            {chats.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-base-content/60">No messages yet</p>
+                <p className="text-sm text-base-content/40 mt-2">
+                  Search for developers to start chatting
+                </p>
+              </div>
+            ) : (
+              chats.map((chat) => {
+                return (
+                  <ChatItem
+                    key={chat.chatId}
+                    chat={chat}
+                    isActive={activeChat?.chatId === chat.chatId}
+                    onClick={() => onChatSelect(chat)}
+                    isLoading
+                  />
+                );
+              })
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
