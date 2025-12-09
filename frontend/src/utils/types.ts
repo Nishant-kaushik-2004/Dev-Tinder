@@ -22,3 +22,12 @@ export type MessageType = {
   timestamp: Date;
   seenBy: string[];
 };
+
+export interface FilteredUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  photoUrl: string;
+  about: string;
+}

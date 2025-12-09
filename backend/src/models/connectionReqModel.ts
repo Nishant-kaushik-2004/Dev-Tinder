@@ -37,6 +37,7 @@ const connectionReqSchema = new Schema<IConnectionReq>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     status: {
       type: String,

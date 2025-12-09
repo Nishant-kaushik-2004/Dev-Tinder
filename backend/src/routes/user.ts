@@ -13,7 +13,8 @@ declare global {
 
 const userRouter = express.Router();
 
-const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills location isFresher experience company jobTitle profileViews";
+const USER_SAFE_DATA =
+  "firstName lastName photoUrl age gender about skills location isFresher experience company jobTitle profileViews";
 
 // Get all the pending connections of the loggedIn user.
 userRouter.get("/user/requests/received", async (req, res) => {
@@ -84,12 +85,11 @@ userRouter.get("/user/feed", async (req, res) => {
   try {
     const loggedInUserId = req.user;
 
-    console.log(loggedInUserId);
     // Pagination through backend
     const page = parseInt(req.query.page as string) || 1;
     let limit = parseInt(req.query.limit as string) || 10;
 
-    limit = limit > 30 ? 30 : limit;
+    limit = Math.min(limit, 30); // Max limit is 30
 
     const skip = (page - 1) * limit;
 
@@ -121,6 +121,63 @@ userRouter.get("/user/feed", async (req, res) => {
       users: usersShownInFeed,
     });
   } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({ message: "ERROR : " + error.message });
+    } else {
+      return res.status(500).json({ message: "ERROR : Something went wrong" });
+    }
+  }
+});
+
+userRouter.get("/users/search", async (req, res) => {
+  try {
+    const loggedInUserId = req.user;
+    const query = req.query.query?.toString().trim().toLowerCase();
+    const exclude =
+      typeof req.query.excludeIds === "string"
+        ? req.query.excludeIds.split(",")
+        : [];
+
+    if (!query) return res.json([]);
+
+    // STEP 1: Find matched users (connections where BOTH accepted)
+    const matchedUserIds = await ConnectionReqModel.find({
+      $or: [
+        { fromUser: loggedInUserId, status: "accepted" },
+        { toUser: loggedInUserId, status: "accepted" },
+      ],
+    })
+      .lean()
+      .then((rows) =>
+        rows.map((c) =>
+          c.fromUserId.toString() === loggedInUserId
+            ? c.toUserId.toString()
+            : c.fromUserId.toString()
+        )
+      );
+
+    if (matchedUserIds.length === 0) {
+      return res.status(200).json([]); // No matched users → nothing to search
+    }
+
+    // STEP 2: MongoDB search only inside matched user IDs
+    const users = await User.find(
+      {
+        _id: { $in: matchedUserIds, $nin: exclude },
+        $or: [
+          { firstName: { $regex: query, $options: "i" } },
+          { lastName: { $regex: query, $options: "i" } },
+          { email: { $regex: query, $options: "i" } },
+        ],
+      },
+      "_id firstName lastName email photoUrl about"
+    )
+      .limit(10)
+      .lean();
+
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error("Search error:", error);
     if (error instanceof Error) {
       return res.status(400).json({ message: "ERROR : " + error.message });
     } else {
