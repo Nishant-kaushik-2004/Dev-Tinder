@@ -20,6 +20,7 @@ interface ChatWindowProps {
 const ChatWindow = () => {
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<MessageType[]>([]);
+  // Need to show skeleton loader while messages are being fetched using this loading state
   const [isLoading, setIsLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -55,29 +56,47 @@ const ChatWindow = () => {
     fetchMessages();
   }, [chatId]);
 
-  const handleSendMessage = (text: string) => {
-    const newMessage = {
-      id: Date.now(),
-      text,
-      sender: loggedInUser._id,
-      timestamp: new Date(),
-      seenBy: [loggedInUser._id],
+  useEffect(() => {
+    function handleIncoming(newMessage: MessageType) {
+      console.log(newMessage);
+      // Only update if message belongs to the currently open chat
+      if (newMessage.chatId === chatId) {
+        // React passes the latest state value into the function (prev), even if multiple state updates are queued. So, no risk of losing any new messages which arrive in quick succession.
+        setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+      }
+
+      // Optionally update unread count in chatList here
+      // dispatch(updateUnreadCount(newMessage));
+
+      // Update last message in chat list
+      dispatch(
+        updateChat({
+          chatId: newMessage.chatId,
+          lastMessage: newMessage.text,
+          timestamp: newMessage.timestamp,
+        })
+      );
+    }
+
+    const socket = createSocketConnection();
+
+    socket.on("messageReceived", handleIncoming);
+
+    return () => {
+      socket.off("messageReceived", handleIncoming);
     };
-    // React passes the latest state value into the function (prev), even if multiple state updates are queued. So, no risk of losing any new messages which arrive in quick succession.
-    setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+  }, [chatId]);
 
-    // Make Api call to save message to backend
+  const handleSendMessage = (text: string) => {
+    // const newMessage = {
+    //   id: Date.now(),
+    //   text,
+    //   sender: loggedInUser._id,
+    //   timestamp: new Date(),
+    //   seenBy: [loggedInUser._id],
+    // };
 
-    // Update last message in chat list
-    dispatch(
-      updateChat({
-        chatId: chat.chatId,
-        lastMessage: text,
-        timestamp: new Date(),
-        // messages: [...activeChat.messages, newMessage],
-        // unreadCount: activeChat.unreadCount,
-      })
-    );
+    // Make Api call to save message to backend  -> But this thing is already happening in sendMessage socket event in backend.
 
     // Initialize socket connection
     const socket = createSocketConnection();
@@ -126,13 +145,12 @@ const ChatWindow = () => {
   if (!chatId || !chat) {
     return <ChatWindowFallback />;
   }
-  
+
   const user = {
     name: `${chat.participantInfo.firstName} ${chat.participantInfo.lastName}`,
     avatar: chat.participantInfo.photoUrl,
     status: "online", // This can be dynamic based on real user status
   };
-
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-base-100">

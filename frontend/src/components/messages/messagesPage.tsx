@@ -69,7 +69,6 @@ const MessagesPage = () => {
     fetchChats();
   }, [loggedInUser._id, dispatch]);
 
-
   // Handle resize
   useEffect(() => {
     const handleResize = () => {
@@ -95,7 +94,6 @@ const MessagesPage = () => {
       targetUserId: targetUserId,
     });
 
-    // return () => socket.disconnect();
     return () => {
       socket.disconnect();
     };
@@ -103,15 +101,15 @@ const MessagesPage = () => {
 
   const handleChatSelect = useCallback(
     (chat: Chat) => {
-      if (activeChat && activeChat.chatId === chat.chatId) return;
-
-      // If the chat is already active, do nothing
-      navigate(`/messages/${chat.chatId}`);
-
       // setActiveChat(chat);
       if (isMobile) {
         setShowSidebar(false);
       }
+
+      if (activeChat && activeChat.chatId === chat.chatId) return;
+
+      // If the chat is already active, do nothing
+      navigate(`/messages/${chat.chatId}`);
 
       // Mark messages as read
       // if (chat.unreadCount > 0) {
