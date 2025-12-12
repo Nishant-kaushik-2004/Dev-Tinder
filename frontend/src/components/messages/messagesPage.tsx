@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowRightToLine } from "lucide-react";
 import SkeletonLoader from "./messagesSkeletonLoader";
 import ChatList from "./chatList";
-import createSocketConnection from "../../utils/socket";
 import { Outlet, useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { setChats } from "../../store/chatsSlice";
 import axios from "axios";
 import { Chat } from "../../utils/types";
 import { RootState } from "../../store/store";
+import getSocket from "../../utils/socket";
 
 // Main Messages Page Component
 const MessagesPage = () => {
@@ -17,6 +17,8 @@ const MessagesPage = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [showSidebar, setShowSidebar] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const socketRef = useRef(getSocket());
+  const prevChatIdRef = useRef<string | null>(null);
 
   // To navigate programmatically between chats
   const navigate = useNavigate();
@@ -69,6 +71,44 @@ const MessagesPage = () => {
     fetchChats();
   }, [loggedInUser._id, dispatch]);
 
+  // Setup socket connection for real-time messaging
+  useEffect(() => {
+    const socket = socketRef.current;
+
+    // ensure connected before join
+    const ensureJoin = () => {
+      if (!chatId || !loggedInUser._id) return;
+      // Leave previous room if exists
+      if (prevChatIdRef.current && prevChatIdRef.current !== chatId) {
+        socket.emit("leaveChat", {
+          userId: loggedInUser._id,
+          targetUserId,
+        });
+      }
+      // Join new room
+      socket.emit("joinChat", { userId: loggedInUser._id, targetUserId });
+      prevChatIdRef.current = chatId;
+    };
+
+    if (socket.connected) {
+      ensureJoin();
+    } else {
+      // when socket connects, join
+      const onConnect = () => ensureJoin();
+      socket.on("connect", onConnect);
+      return () => {
+        socket.off("connect", onConnect);
+      };
+    }
+
+    // cleanup only leaves room, does NOT disconnect global socket
+    return () => {
+      if (socket && prevChatIdRef.current === chatId) {
+        socket.emit("leaveChat", { chatId, userId: loggedInUser._id });
+      }
+    };
+  }, [chatId, loggedInUser._id]);
+
   // Handle resize
   useEffect(() => {
     const handleResize = () => {
@@ -81,23 +121,6 @@ const MessagesPage = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // Setup socket connection for real-time messaging
-  useEffect(() => {
-    if (!targetUserId) return;
-
-    // Initialize socket connection
-    const socket = createSocketConnection();
-
-    socket.emit("joinChat", {
-      userId: loggedInUser._id,
-      targetUserId: targetUserId,
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [targetUserId, loggedInUser._id]);
 
   const handleChatSelect = useCallback(
     (chat: Chat) => {

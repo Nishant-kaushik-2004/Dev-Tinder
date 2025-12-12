@@ -71,7 +71,7 @@ const InitializeSocket = (server: HttpServer) => {
       const roomId = getSecretRoomId(userId, targetUserId);
 
       // 1) Ensure both users join this chat room  ->  Already joined in "joinChat" event
-      socket.join(roomId);
+      // socket.join(roomId);
 
       console.log(`${firstName} sent message to ${targetUserId}: ${text}`);
 
@@ -111,7 +111,9 @@ const InitializeSocket = (server: HttpServer) => {
       io.to(roomId).emit("messageReceived", messagePayload);
     });
 
-    socket.on("disconnect", () => {});
+    socket.on("disconnect", (reason) => {
+      console.log("User disconnected: " + reason);
+    });
   });
 };
 export default InitializeSocket;

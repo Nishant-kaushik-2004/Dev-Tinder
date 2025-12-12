@@ -6,7 +6,7 @@ import ChatWindowFallback from "./chatWindowFallback";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { updateChat } from "../../store/chatsSlice";
-import createSocketConnection from "../../utils/socket";
+import getSocket from "../../utils/socket";
 import { Chat, MessageType } from "../../utils/types";
 import { IUser } from "../../store/userSlice";
 
@@ -57,6 +57,8 @@ const ChatWindow = () => {
   }, [chatId]);
 
   useEffect(() => {
+    const socket = getSocket();
+
     function handleIncoming(newMessage: MessageType) {
       console.log(newMessage);
       // Only update if message belongs to the currently open chat
@@ -78,14 +80,12 @@ const ChatWindow = () => {
       );
     }
 
-    const socket = createSocketConnection();
-
     socket.on("messageReceived", handleIncoming);
 
     return () => {
       socket.off("messageReceived", handleIncoming);
     };
-  }, [chatId]);
+  }, [chatId, dispatch]);
 
   const handleSendMessage = (text: string) => {
     // const newMessage = {
@@ -99,7 +99,7 @@ const ChatWindow = () => {
     // Make Api call to save message to backend  -> But this thing is already happening in sendMessage socket event in backend.
 
     // Initialize socket connection
-    const socket = createSocketConnection();
+    const socket = getSocket();
 
     // Emit sendMessage socket event to send message
     socket.emit("sendMessage", {
@@ -108,6 +108,7 @@ const ChatWindow = () => {
       targetUserId: chat.participantInfo._id,
       text,
     });
+    // optimistic local update: append message locally, rollback on error if needed
   };
 
   const handleSend = () => {
