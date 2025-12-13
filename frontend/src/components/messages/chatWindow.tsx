@@ -83,6 +83,7 @@ const ChatWindow = () => {
     socket.on("messageReceived", handleIncoming);
 
     return () => {
+      // Removes the "handleIncoming" listener from the listener array for the event named messageReceived.
       socket.off("messageReceived", handleIncoming);
     };
   }, [chatId, dispatch]);
@@ -98,7 +99,7 @@ const ChatWindow = () => {
 
     // Make Api call to save message to backend  -> But this thing is already happening in sendMessage socket event in backend.
 
-    // Initialize socket connection
+    // get initialized socket connection
     const socket = getSocket();
 
     // Emit sendMessage socket event to send message

@@ -56,7 +56,7 @@ const InitializeSocket = (server: HttpServer) => {
       origin: "http://localhost:5173",
     },
   });
-
+  // NOTE: Socket is a server side name for a client.
   io.on("connection", (socket) => {
     console.log("A user Connected");
     // Handle Events
@@ -107,8 +107,9 @@ const InitializeSocket = (server: HttpServer) => {
         timestamp: message.createdAt,
       };
       console.log(messagePayload);
-      // 4) Emit to BOTH sender & receiver
+      // 4) Emit to BOTH sender & receiver (to the room where they both joined)]
       io.to(roomId).emit("messageReceived", messagePayload);
+      // If want to emit to all clients in the room except sender, we can use: socket.broadcast.to(roomId).emit(...)
     });
 
     socket.on("disconnect", (reason) => {

@@ -86,6 +86,7 @@ const MessagesPage = () => {
         });
       }
       // Join new room
+      // NOTE: Rooms are a server-only concept (i.e. the client does not have access to the list of rooms it has joined).
       socket.emit("joinChat", { userId: loggedInUser._id, targetUserId });
       prevChatIdRef.current = chatId;
     };
