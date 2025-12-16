@@ -1,6 +1,7 @@
 import express from "express";
 import { ConnectionReqModel } from "../models/connectionReqModel.js";
 import { User } from "../models/userModel.js";
+import mongoose from "mongoose";
 
 // Extend Express Request type to include 'user'
 declare global {
@@ -133,10 +134,16 @@ userRouter.get("/users/search", async (req, res) => {
   try {
     const loggedInUserId = req.user;
     const query = req.query.query?.toString().trim().toLowerCase();
-    const exclude =
+
+    const rawExclude =
       typeof req.query.excludeIds === "string"
-        ? req.query.excludeIds.split(",")
+        ? req.query.excludeIds?.split(",")
         : [];
+
+    const exclude = rawExclude
+      .filter(Boolean) // removes ""
+      .filter((id) => mongoose.Types.ObjectId.isValid(id)) // Removes invalid ObjectId strings
+      .map((id) => new mongoose.Types.ObjectId(id)); // Convert to ObjectId type
 
     if (!query)
       return res.json({
@@ -175,11 +182,11 @@ userRouter.get("/users/search", async (req, res) => {
     // STEP 2: MongoDB search only inside matched user IDs
     const users = await User.find(
       {
-        _id: { $in: matchedUserIds, $nin: exclude },
+        _id: { $in: matchedUserIds, $nin: exclude }, // ❌ The problem is array containing invalid ObjectId strings(even empty strings), not empty arrays for $in and $nin.
         $or: [
-          { firstName: { $regex: query, $options: "i" } },
-          { lastName: { $regex: query, $options: "i" } },
-          { email: { $regex: query, $options: "i" } },
+          { firstName: { $regex: `^${query}`, $options: "i" } },
+          { lastName: { $regex: `^${query}`, $options: "i" } },
+          { email: { $regex: `^${query}`, $options: "i" } },
         ],
       },
       "_id firstName lastName email photoUrl about"

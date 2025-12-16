@@ -4,11 +4,12 @@ import MessageBubble from "./messageBubble";
 import { useOutletContext, useParams } from "react-router";
 import ChatWindowFallback from "./chatWindowFallback";
 import axios from "axios";
-import { useDispatch } from "react-redux";
-import { updateChat } from "../../store/chatsSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { addNewChat, updateChat } from "../../store/chatsSlice";
 import getSocket from "../../utils/socket";
-import { Chat, MessageType } from "../../utils/types";
+import { Chat, MessageType, ReceivedMessage } from "../../utils/types";
 import { IUser } from "../../store/userSlice";
+import { RootState } from "../../store/store";
 
 interface ChatWindowProps {
   chat: Chat;
@@ -31,6 +32,8 @@ const ChatWindow = () => {
 
   const dispatch = useDispatch();
   const params = useParams();
+
+  const chats = useSelector((store: RootState) => store.chats);
 
   const { chatId } = params;
 
@@ -59,25 +62,52 @@ const ChatWindow = () => {
   useEffect(() => {
     const socket = getSocket();
 
-    function handleIncoming(newMessage: MessageType) {
+    function handleIncoming(newMessage: ReceivedMessage) {
       console.log(newMessage);
+      const { messagePayload, senderInfo, chat } = newMessage;
       // Only update if message belongs to the currently open chat
-      if (newMessage.chatId === chatId) {
+      if (chat.chatId === chatId) {
         // React passes the latest state value into the function (prev), even if multiple state updates are queued. So, no risk of losing any new messages which arrive in quick succession.
-        setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+        setChatMessages((prevMessages) => [...prevMessages, messagePayload]);
       }
 
       // Optionally update unread count in chatList here
       // dispatch(updateUnreadCount(newMessage));
 
-      // Update last message in chat list
-      dispatch(
-        updateChat({
-          chatId: newMessage.chatId,
-          lastMessage: newMessage.text,
-          timestamp: newMessage.timestamp,
-        })
+      if (senderInfo._id === loggedInUser._id) {
+        const chatIdx = chats.findIndex((c) => c.chatId === chat.chatId);
+        if (chatIdx === -1) return; // Just for safety (if works correctly than it should never hit as before sending message to a chat loggedIn user must have clicked the chat which results into creation of temp chat in redux)
+        dispatch(
+          updateChat({
+            tempChatIdx: chatIdx,
+            newChat: {
+              lastMessage: messagePayload.text,
+              timestamp: new Date().toISOString(),
+            },
+          })
+        );
+        return;
+      } // No need to update chats list if the message is sent by logged in user himself/herself.
+
+      // Update chats list in redux store
+      const tempChatIdx = chats.findIndex(
+        (c) => c.participantInfo._id === messagePayload.sender
       );
+      const newChat = {
+        chatId: chat.chatId,
+        participantInfo: senderInfo,
+        lastMessage: messagePayload.text,
+        timestamp: new Date().toISOString(),
+        unreadCount: (chats[tempChatIdx]?.unreadCount ?? 0) + 1, // Add one if already exist otherwise 1 if new chat
+      };
+
+      if (tempChatIdx === -1) {
+        // No temporary chat exist locally so add new chat
+        dispatch(addNewChat(newChat));
+      } else {
+        // Temporary chat exist so convert it to permanent chat or if already permanent just update it
+        dispatch(updateChat({ tempChatIdx, newChat }));
+      }
     }
 
     socket.on("messageReceived", handleIncoming);
@@ -86,7 +116,7 @@ const ChatWindow = () => {
       // Removes the "handleIncoming" listener from the listener array for the event named messageReceived.
       socket.off("messageReceived", handleIncoming);
     };
-  }, [chatId, dispatch]);
+  }, [chatId, dispatch, chats]);
 
   const handleSendMessage = (text: string) => {
     // const newMessage = {
@@ -104,9 +134,16 @@ const ChatWindow = () => {
 
     // Emit sendMessage socket event to send message
     socket.emit("sendMessage", {
-      firstName: loggedInUser.firstName,
-      userId: loggedInUser._id,
-      targetUserId: chat.participantInfo._id,
+      senderId: loggedInUser._id,
+      senderInfo: {
+        _id: loggedInUser._id,
+        firstName: loggedInUser.firstName,
+        lastName: loggedInUser.lastName,
+        email: loggedInUser.email,
+        photoUrl: loggedInUser.photoUrl,
+        about: loggedInUser.about,
+      },
+      receiverId: chat.participantInfo._id,
       text,
     });
     // optimistic local update: append message locally, rollback on error if needed

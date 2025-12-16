@@ -150,10 +150,32 @@ chatRouter.get("/chats", async (req: Request, res: Response) => {
 chatRouter.get("/messages/:chatId", async (req: Request, res: Response) => {
   try {
     const { chatId } = req.params;
+    const userId = req.user as string;
 
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(chatId)) {
-      return res.status(400).json({ error: "Invalid chatId" });
+      return res.status(400).json({
+        message:
+          "Invalid chatId, The chat you are looking for does not exist!!",
+        error: "ERROR: Invalid chatId",
+      });
+    }
+
+    const chat = await Chat.findById(chatId).select("_id participants");
+    if (!chat) {
+      return res.status(404).json({
+        message:
+          "Chat not found, The chat you are looking for does not exist!!",
+        error: "ERROR: Chat not found",
+      });
+    }
+
+    // comparing as strings because participants are stored as ObjectId
+    if (!chat.participants.map((p: any) => p.toString()).includes(userId)) {
+      return res.status(403).json({
+        message: "Access denied, You are not a participant of this chat!!",
+        error: "ERROR: Access denied",
+      });
     }
 
     // Fetch messages
@@ -177,9 +199,10 @@ chatRouter.get("/messages/:chatId", async (req: Request, res: Response) => {
     console.error("Error fetching messages:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Internal server error";
-    return res
-      .status(500)
-      .json({ message: "Internal server error", error: errorMessage });
+    return res.status(500).json({
+      message: "Internal server error",
+      error: "ERROR: " + errorMessage,
+    });
   }
 });
 

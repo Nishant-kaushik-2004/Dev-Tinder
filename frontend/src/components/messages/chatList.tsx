@@ -4,7 +4,7 @@ import ChatItem from "./chatItem";
 import SearchBar from "./searchBar";
 import DropDownMenu from "../navbar/mobileNavigation";
 import { useSelector } from "react-redux";
-import { Chat, FilteredUser } from "../../utils/types";
+import { Chat, userInfo } from "../../utils/types";
 import { RootState } from "../../store/store";
 import axios from "axios";
 
@@ -26,7 +26,7 @@ const ChatList: React.FC<ChatListProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState<FilteredUser[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<userInfo[]>([]);
 
   const chats = useSelector((store: RootState) => store.chats);
 
@@ -117,23 +117,14 @@ const ChatList: React.FC<ChatListProps> = ({
                 key={user._id}
                 onClick={() =>
                   //❌ A chat should NOT be permanently created unless there is at least one message.
-                  onChatSelect(
-                    {
-                      chatId: user._id, // Temporary chatId until first message is sent and real chatId is received from backend
-                      participantInfo: {
-                        _id: user._id,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        email: user.email,
-                        photoUrl: user.photoUrl,
-                        about: user.about,
-                      },
-                      lastMessage: "",
-                      timestamp: new Date().toISOString(),
-                      unreadCount: 0,
-                      isTemporary: true,
-                    },
-                  )
+                  onChatSelect({
+                    chatId: user._id, // Temporary chatId until first message is sent and real chatId is received from backend
+                    participantInfo: user,
+                    lastMessage: "",
+                    timestamp: new Date().toISOString(),
+                    unreadCount: 0,
+                    isTemporary: true,
+                  })
                 }
                 className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200"
               >

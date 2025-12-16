@@ -1,4 +1,4 @@
-export interface ParticipantInfo {
+export interface userInfo {
   _id: string;
   firstName: string;
   lastName: string;
@@ -9,7 +9,7 @@ export interface ParticipantInfo {
 
 export interface Chat {
   chatId: string;
-  participantInfo: ParticipantInfo;
+  participantInfo: userInfo;
   lastMessage: string;
   timestamp: string;
   unreadCount: number;
@@ -25,11 +25,8 @@ export type MessageType = {
   seenBy: string[];
 };
 
-export interface FilteredUser {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  photoUrl: string;
-  about: string;
-}
+export type ReceivedMessage = {
+  messagePayload: MessageType;
+  senderInfo: userInfo;
+  chat: { chatId: string; participants: string[] };
+};

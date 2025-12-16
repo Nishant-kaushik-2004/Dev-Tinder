@@ -4,7 +4,7 @@ import SkeletonLoader from "./messagesSkeletonLoader";
 import ChatList from "./chatList";
 import { Outlet, useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { setChats } from "../../store/chatsSlice";
+import { addNewChat, setChats } from "../../store/chatsSlice";
 import axios from "axios";
 import { Chat } from "../../utils/types";
 import { RootState } from "../../store/store";
@@ -81,13 +81,16 @@ const MessagesPage = () => {
       // Leave previous room if exists
       if (prevChatIdRef.current && prevChatIdRef.current !== chatId) {
         socket.emit("leaveChat", {
-          userId: loggedInUser._id,
-          targetUserId,
+          senderId: loggedInUser._id,
+          receiverId: targetUserId,
         });
       }
       // Join new room
       // NOTE: Rooms are a server-only concept (i.e. the client does not have access to the list of rooms it has joined).
-      socket.emit("joinChat", { userId: loggedInUser._id, targetUserId });
+      socket.emit("joinChat", {
+        senderId: loggedInUser._id,
+        receiverId: targetUserId,
+      });
       prevChatIdRef.current = chatId;
     };
 
@@ -105,7 +108,10 @@ const MessagesPage = () => {
     // cleanup only leaves room, does NOT disconnect global socket
     return () => {
       if (socket && prevChatIdRef.current === chatId) {
-        socket.emit("leaveChat", { chatId, userId: loggedInUser._id });
+        socket.emit("leaveChat", {
+          senderId: loggedInUser._id,
+          receiverId: targetUserId,
+        });
       }
     };
   }, [chatId, loggedInUser._id, targetUserId]);
@@ -135,7 +141,7 @@ const MessagesPage = () => {
 
       if (chat.isTemporary) {
         // If temporary chat, add it to chats list in redux store
-        dispatch(setChats([...chats, chat]));
+        dispatch(addNewChat(chat));
       }
 
       navigate(`/messages/${chat.chatId}`);

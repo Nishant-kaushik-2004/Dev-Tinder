@@ -2,33 +2,49 @@ import { Server } from "socket.io";
 
 interface ServerToClientEvents {
   messageReceived: (data: {
-    _id: mongoose.Types.ObjectId;
-    chatId: mongoose.Types.ObjectId;
-    sender: string;
-    text: string;
-    seenBy: string[];
-    timestamp: Date | undefined;
+    messagePayload: {
+      _id: mongoose.Types.ObjectId;
+      chatId: mongoose.Types.ObjectId;
+      sender: string;
+      text: string;
+      seenBy: string[];
+      timestamp: Date | undefined;
+    };
+    senderInfo: senderInfo;
+    chat: {
+      chatId: mongoose.Types.ObjectId;
+      participants: string[];
+    };
   }) => void;
   basicEmit: (a: number, b: string, c: Buffer) => void;
   withAck: (d: string, callback: (e: number) => void) => void;
 }
 
-interface SendMessage {
+export interface senderInfo {
+  _id: string;
   firstName: string;
-  userId: string;
-  targetUserId: string;
+  lastName: string;
+  email: string;
+  photoUrl: string;
+  about: string;
+}
+
+interface SendMessage {
+  senderInfo: senderInfo;
+  senderId: string;
+  receiverId: string;
   text: string;
 }
 
 interface ClientToServerEvents {
   // hello: () => void;
-  joinChat: (payload: { userId: string; targetUserId: string }) => void;
-  leaveChat: (payload: { userId: string; targetUserId: string }) => void;
+  joinChat: (payload: { senderId: string; receiverId: string }) => void;
+  leaveChat: (payload: { senderId: string; receiverId: string }) => void;
   sendMessage: (payload: SendMessage) => void;
 }
 
 interface InterServerEvents {
-  ping: () => void;     
+  ping: () => void;
 }
 
 interface SocketData {
@@ -39,7 +55,7 @@ interface SocketData {
 import { Server as HttpServer } from "http";
 import crypto from "crypto";
 import { Chat, Message } from "../models/chatModel.js";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import { User } from "../models/userModel.js";
 
 const getSecretRoomId = (userId: String, targetUserId: String) => {
@@ -62,55 +78,58 @@ const InitializeSocket = (server: HttpServer) => {
   io.on("connection", (socket) => {
     console.log("A user Connected: " + socket.id);
     // Handle Events
-    socket.on("joinChat", ({ userId, targetUserId }) => {
+    socket.on("joinChat", ({ senderId, receiverId }) => {
       // objectId validation
-      const isUserIdValid = mongoose.Types.ObjectId.isValid(userId);
-      const isTargetUserIdValid = mongoose.Types.ObjectId.isValid(targetUserId);
+      const isUserIdValid = mongoose.Types.ObjectId.isValid(senderId);
+      const isTargetUserIdValid = mongoose.Types.ObjectId.isValid(receiverId);
       if (!isUserIdValid || !isTargetUserIdValid) {
         console.log("Invalid userId or targetUserId");
         return;
       }
       // Validate both users exist
-      const isUserExists = User.exists({ _id: userId });
-      const isTargetUserExists = User.exists({ _id: targetUserId });
-      if (!isUserExists || !isTargetUserExists) {
+      const isSenderExists = User.exists({ _id: senderId });
+      const isTargetUserExists = User.exists({ _id: receiverId });
+      if (!isSenderExists || !isTargetUserExists) {
         console.log("User or Target User does not exist");
         return;
       }
       // Create a unique room (roomId) for the two users and join the current user socket to that room.
-      const roomId = getSecretRoomId(userId, targetUserId);
+      const roomId = getSecretRoomId(senderId, receiverId);
       console.log("Joining Room: " + roomId);
       socket.join(roomId);
       // If the other user (targetUser) socket also joins the same roomId then they will be in the same room.
       // Then if any user amongst them emits a message to the server then server emits to that roomId, both will receive the message.
     });
 
-    socket.on("leaveChat", ({ userId, targetUserId }) => {
-      const roomId = getSecretRoomId(userId, targetUserId);
+    socket.on("leaveChat", ({ senderId, receiverId }) => {
+      const roomId = getSecretRoomId(senderId, receiverId);
       socket.leave(roomId);
       console.log(`User left room: ${roomId}`);
     });
 
     socket.on("sendMessage", async (payload: SendMessage) => {
-      const { firstName, userId, targetUserId, text } = payload;
-      const roomId = getSecretRoomId(userId, targetUserId);
+      console.log(payload);
+      const { senderInfo, senderId, receiverId, text } = payload;
+      const roomId = getSecretRoomId(senderId, receiverId);
 
       // 1) Ensure both users join this chat room  ->  Already joined in "joinChat" event
       // socket.join(roomId);
 
-      console.log(`${firstName} sent message to ${targetUserId}: ${text}`);
+      console.log(
+        `${senderInfo.firstName} sent message to ${receiverId}: ${text}`
+      );
 
       // 2) Find or create chat
       let chat = await Chat.findOne({
-        participants: { $all: [userId, targetUserId] },
+        participants: { $all: [senderId, receiverId] },
       });
 
       if (!chat) {
         console.log(
-          `No existing chat found between ${userId} and ${targetUserId}. Creating new chat.`
+          `No existing chat found between ${senderId} and ${receiverId}. Creating new chat.`
         );
         chat = await Chat.create({
-          participants: [userId, targetUserId],
+          participants: [senderId, receiverId],
         });
         console.log("Created new chat:", chat._id);
       }
@@ -118,22 +137,29 @@ const InitializeSocket = (server: HttpServer) => {
       // 3) Create message
       const message = await Message.create({
         chatId: chat._id,
-        sender: userId,
+        sender: senderId,
         text,
-        seenBy: [userId],
+        seenBy: [senderId],
       });
 
       const messagePayload = {
         _id: message._id, // WebSocket JSON serialization converts this: ObjectId("67a3c99ee60cb081af95d111") to this: "67a3c99ee60cb081af95d111"
         chatId: chat._id,
-        sender: userId,
+        sender: senderId,
         text,
         seenBy: message.seenBy.map((id) => id.toString()),
         timestamp: message.createdAt,
       };
       console.log(messagePayload);
       // 4) Emit to BOTH sender & receiver (to a room where they both joined)
-      io.to(roomId).emit("messageReceived", messagePayload);
+      io.to(roomId).emit("messageReceived", {
+        messagePayload,
+        senderInfo,
+        chat: {
+          chatId: chat._id,
+          participants: chat.participants.map((id) => id.toString()),
+        },
+      });
       // If want to emit to all clients in the room except sender, we can use: socket.broadcast.to(roomId).emit(...)
     });
 

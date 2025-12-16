@@ -26,20 +26,19 @@ export const chatsSlice = createSlice({
     setChats: (_, action) => {
       return action.payload; // Replace whole chats array safely
     },
+
     // Data updates frequently (new message(it requires updating last message, timestamp, unread count…) so we merge updates
     updateChat: (state, action) => {
-      const chatIndex = state.findIndex(
-        (c) => c.chatId === action.payload.chatId
-      );
-      console.log("foundIdx -> ", chatIndex);
-      if (chatIndex !== -1) {
-        // Update existing chat
-        state[chatIndex] = { ...state[chatIndex], ...action.payload };
-      } else {
-        // Add new chat
-        state.push(action.payload);
-      }
+      const { tempChatIdx, newChat } = action.payload;
+      // Update existing temporary chat (or permanent chat if not new participant message)
+      state[tempChatIdx] = { ...state[tempChatIdx], ...newChat };
+    }, // Convert temporary chat to permanent chat when first message is sent and real chatId is received from backend or first message is received from a new participant
+
+    // For messages from a new sender where no temporary chat exist locally
+    addNewChat: (state, action) => {
+      state.push(action.payload);
     },
+
     // Mark all messages in a chat as read
     markChatAsRead: (state, action) => {
       // Accept chatId as payload
@@ -50,6 +49,7 @@ export const chatsSlice = createSlice({
 
       chat.unreadCount = 0;
     },
+
     removeChats: () => {
       return initialState;
     },
@@ -57,7 +57,12 @@ export const chatsSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { setChats, updateChat, markChatAsRead, removeChats } =
-  chatsSlice.actions;
+export const {
+  setChats,
+  updateChat,
+  addNewChat,
+  markChatAsRead,
+  removeChats,
+} = chatsSlice.actions;
 
 export default chatsSlice.reducer;
