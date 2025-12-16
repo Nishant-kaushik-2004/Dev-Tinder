@@ -23,11 +23,12 @@ interface SendMessage {
 interface ClientToServerEvents {
   // hello: () => void;
   joinChat: (payload: { userId: string; targetUserId: string }) => void;
+  leaveChat: (payload: { userId: string; targetUserId: string }) => void;
   sendMessage: (payload: SendMessage) => void;
 }
 
 interface InterServerEvents {
-  ping: () => void;
+  ping: () => void;     
 }
 
 interface SocketData {
@@ -39,6 +40,7 @@ import { Server as HttpServer } from "http";
 import crypto from "crypto";
 import { Chat, Message } from "../models/chatModel.js";
 import mongoose, { mongo } from "mongoose";
+import { User } from "../models/userModel.js";
 
 const getSecretRoomId = (userId: String, targetUserId: String) => {
   const roomId = [userId, targetUserId].sort().join("_");
@@ -56,14 +58,37 @@ const InitializeSocket = (server: HttpServer) => {
       origin: "http://localhost:5173",
     },
   });
-  // NOTE: Socket is a server side name for a client.
+  // NOTE: Socket is a server side name for a client connection.
   io.on("connection", (socket) => {
-    console.log("A user Connected");
+    console.log("A user Connected: " + socket.id);
     // Handle Events
     socket.on("joinChat", ({ userId, targetUserId }) => {
+      // objectId validation
+      const isUserIdValid = mongoose.Types.ObjectId.isValid(userId);
+      const isTargetUserIdValid = mongoose.Types.ObjectId.isValid(targetUserId);
+      if (!isUserIdValid || !isTargetUserIdValid) {
+        console.log("Invalid userId or targetUserId");
+        return;
+      }
+      // Validate both users exist
+      const isUserExists = User.exists({ _id: userId });
+      const isTargetUserExists = User.exists({ _id: targetUserId });
+      if (!isUserExists || !isTargetUserExists) {
+        console.log("User or Target User does not exist");
+        return;
+      }
+      // Create a unique room (roomId) for the two users and join the current user socket to that room.
       const roomId = getSecretRoomId(userId, targetUserId);
       console.log("Joining Room: " + roomId);
       socket.join(roomId);
+      // If the other user (targetUser) socket also joins the same roomId then they will be in the same room.
+      // Then if any user amongst them emits a message to the server then server emits to that roomId, both will receive the message.
+    });
+
+    socket.on("leaveChat", ({ userId, targetUserId }) => {
+      const roomId = getSecretRoomId(userId, targetUserId);
+      socket.leave(roomId);
+      console.log(`User left room: ${roomId}`);
     });
 
     socket.on("sendMessage", async (payload: SendMessage) => {
@@ -107,7 +132,7 @@ const InitializeSocket = (server: HttpServer) => {
         timestamp: message.createdAt,
       };
       console.log(messagePayload);
-      // 4) Emit to BOTH sender & receiver (to the room where they both joined)]
+      // 4) Emit to BOTH sender & receiver (to a room where they both joined)
       io.to(roomId).emit("messageReceived", messagePayload);
       // If want to emit to all clients in the room except sender, we can use: socket.broadcast.to(roomId).emit(...)
     });

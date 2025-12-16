@@ -44,6 +44,7 @@ const ChatList: React.FC<ChatListProps> = ({
           `${import.meta.env.VITE_BACKEND_URL}/users/search`,
           {
             params: { query: searchValue, excludeIds },
+            withCredentials: true,
           }
         );
 
@@ -57,7 +58,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
     return () => clearTimeout(delay);
   }, [searchValue, chats]);
-
+  console.log(searchValue);
   // Filter users based on search input and exclude those who already have chats so that they don't appear in "Start new chat" list
   // const filteredUsers = useMemo(() => {
   //   if (!searchValue) return [];
@@ -115,20 +116,24 @@ const ChatList: React.FC<ChatListProps> = ({
               <div
                 key={user._id}
                 onClick={() =>
-                  onChatSelect({
-                    chatId: `new-${user._id}`,
-                    participantInfo: {
-                      _id: user._id,
-                      firstName: user.firstName,
-                      lastName: user.lastName,
-                      email: user.email,
-                      photoUrl: user.photoUrl,
-                      about: user.about,
+                  //❌ A chat should NOT be permanently created unless there is at least one message.
+                  onChatSelect(
+                    {
+                      chatId: user._id, // Temporary chatId until first message is sent and real chatId is received from backend
+                      participantInfo: {
+                        _id: user._id,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        email: user.email,
+                        photoUrl: user.photoUrl,
+                        about: user.about,
+                      },
+                      lastMessage: "",
+                      timestamp: new Date().toISOString(),
+                      unreadCount: 0,
+                      isTemporary: true,
                     },
-                    lastMessage: "",
-                    timestamp: new Date().toISOString(),
-                    unreadCount: 0,
-                  })
+                  )
                 }
                 className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200"
               >
@@ -153,8 +158,8 @@ const ChatList: React.FC<ChatListProps> = ({
         )}
 
         {isLoading ? (
-          [1, 2, 3].map(() => (
-            <div className="flex items-center gap-3 p-3 rounded-lg">
+          [1, 2, 3].map((_, idx) => (
+            <div key={idx} className="flex items-center gap-3 p-3 rounded-lg">
               <div className="skeleton w-12 h-12 rounded-full"></div>
               <div className="flex-1 space-y-2">
                 <div className="skeleton h-4 w-24"></div>

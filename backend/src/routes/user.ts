@@ -138,13 +138,21 @@ userRouter.get("/users/search", async (req, res) => {
         ? req.query.excludeIds.split(",")
         : [];
 
-    if (!query) return res.json([]);
+    if (!query)
+      return res.json({
+        message: "Nothing to search, please provide a search query",
+        users: [],
+      });
+
+    console.log("loggedInUserId: ", loggedInUserId);
+    console.log("query: ", query);
+    console.log("exclude: ", exclude);
 
     // STEP 1: Find matched users (connections where BOTH accepted)
     const matchedUserIds = await ConnectionReqModel.find({
       $or: [
-        { fromUser: loggedInUserId, status: "accepted" },
-        { toUser: loggedInUserId, status: "accepted" },
+        { fromUserId: loggedInUserId, status: "accepted" },
+        { toUserId: loggedInUserId, status: "accepted" },
       ],
     })
       .lean()
@@ -157,7 +165,11 @@ userRouter.get("/users/search", async (req, res) => {
       );
 
     if (matchedUserIds.length === 0) {
-      return res.status(200).json([]); // No matched users → nothing to search
+      return res.status(200).json({
+        message:
+          "You have no connections yet, Please connect with users first to chat",
+        users: [],
+      }); // No matched users → nothing to search
     }
 
     // STEP 2: MongoDB search only inside matched user IDs
@@ -175,7 +187,17 @@ userRouter.get("/users/search", async (req, res) => {
       .limit(10)
       .lean();
 
-    return res.status(200).json(users);
+    if (users.length === 0) {
+      return res.status(200).json({
+        message: "No users found matching your search query",
+        users,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Users found matching your search query",
+      users,
+    });
   } catch (error) {
     console.error("Search error:", error);
     if (error instanceof Error) {

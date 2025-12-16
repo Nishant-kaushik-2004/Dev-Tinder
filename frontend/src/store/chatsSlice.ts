@@ -23,7 +23,7 @@ export const chatsSlice = createSlice({
   name: "chatsSlice",
   initialState,
   reducers: {
-    setChats: (state, action) => {
+    setChats: (_, action) => {
       return action.payload; // Replace whole chats array safely
     },
     // Data updates frequently (new message(it requires updating last message, timestamp, unread count…) so we merge updates
@@ -31,7 +31,7 @@ export const chatsSlice = createSlice({
       const chatIndex = state.findIndex(
         (c) => c.chatId === action.payload.chatId
       );
-
+      console.log("foundIdx -> ", chatIndex);
       if (chatIndex !== -1) {
         // Update existing chat
         state[chatIndex] = { ...state[chatIndex], ...action.payload };

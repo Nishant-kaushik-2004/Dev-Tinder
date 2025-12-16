@@ -19,7 +19,7 @@ export default function getSocket(createNew = false): Socket {
   }
   return socket;
 }
-
+// A user should have only ONE socket connection per session.
 export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
@@ -27,11 +27,19 @@ export function disconnectSocket() {
   }
 }
 
-// // ES modules
-// import { io } from "socket.io-client";
+// Standard socket lifecycle (industry pattern)
+// ✔ Correct flow:
 
-// const createSocketConnection = () => {
-//   return io(import.meta.env.VITE_BACKEND_URL);
-// };
-
-// export default createSocketConnection;
+// App loads
+//   ↓
+// Create ONE socket connection
+//   ↓
+// User joins chat room (joinChat)
+//   ↓
+// Send / receive messages
+//   ↓
+// User switches chat → leaveChat current → joinChat new
+//   ↓
+// Send / receive messages
+//   ↓
+// App closes → socket disconnect

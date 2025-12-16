@@ -38,7 +38,7 @@ const MessagesPage = () => {
     }
   }, [chatId, chats]);
 
-  const targetUserId = activeChat ? activeChat.participantInfo._id : null;
+  const targetUserId = activeChat?.participantInfo?._id ?? null;
 
   // Fetch chats of the logged in user from backend
   useEffect(() => {
@@ -77,7 +77,7 @@ const MessagesPage = () => {
 
     // ensure connected before join
     const ensureJoin = () => {
-      if (!chatId || !loggedInUser._id) return;
+      if (!chatId || !loggedInUser._id || !targetUserId) return;
       // Leave previous room if exists
       if (prevChatIdRef.current && prevChatIdRef.current !== chatId) {
         socket.emit("leaveChat", {
@@ -108,7 +108,7 @@ const MessagesPage = () => {
         socket.emit("leaveChat", { chatId, userId: loggedInUser._id });
       }
     };
-  }, [chatId, loggedInUser._id]);
+  }, [chatId, loggedInUser._id, targetUserId]);
 
   // Handle resize
   useEffect(() => {
@@ -130,9 +130,14 @@ const MessagesPage = () => {
         setShowSidebar(false);
       }
 
+      // If the chat is already active, do nothing
       if (activeChat && activeChat.chatId === chat.chatId) return;
 
-      // If the chat is already active, do nothing
+      if (chat.isTemporary) {
+        // If temporary chat, add it to chats list in redux store
+        dispatch(setChats([...chats, chat]));
+      }
+
       navigate(`/messages/${chat.chatId}`);
 
       // Mark messages as read

@@ -196,10 +196,10 @@ const ChatWindow = () => {
             key={msg.id}
             message={msg}
             isMe={msg.sender === loggedInUser._id}
+            // To show avatar only for the first message in a sequence of messages of the target user.
             showAvatar={
-              // idx === 0 || chatMessages[idx - 1].sender !== msg.sender
-              msg.sender !== loggedInUser._id
-            }
+              idx === 0 || chatMessages[idx - 1].sender !== msg.sender
+            } // Show avatar if it's the first message or sender is different from previous message (But this is used only when its not me sending the message)
             avatar={user.avatar}
           />
         ))}

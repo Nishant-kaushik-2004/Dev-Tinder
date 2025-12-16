@@ -13,6 +13,7 @@ export interface Chat {
   lastMessage: string;
   timestamp: string;
   unreadCount: number;
+  isTemporary?: boolean;
 }
 
 export type MessageType = {
