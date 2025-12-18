@@ -13,7 +13,7 @@ export interface Chat {
   lastMessage: string;
   timestamp: string;
   unreadCount: number;
-  isTemporary?: boolean;
+  // isTemporary?: boolean; // Not needed as we only require it during chat creation before first message is sent, for which we can use 2nd argument of handleChatSelect function in messagesPage.tsx
 }
 
 export type MessageType = {

@@ -49,6 +49,7 @@ const ChatWindow = () => {
         if (!res.data.messages) {
           throw new Error("No chat messages found");
         }
+        console.log(res.data);
         setChatMessages(res.data.messages);
       } catch (error) {
         console.error("Error fetching chat messages:", error);

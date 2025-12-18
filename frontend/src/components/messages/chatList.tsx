@@ -117,14 +117,16 @@ const ChatList: React.FC<ChatListProps> = ({
                 key={user._id}
                 onClick={() =>
                   //❌ A chat should NOT be permanently created unless there is at least one message.
-                  onChatSelect({
-                    chatId: user._id, // Temporary chatId until first message is sent and real chatId is received from backend
-                    participantInfo: user,
-                    lastMessage: "",
-                    timestamp: new Date().toISOString(),
-                    unreadCount: 0,
-                    isTemporary: true,
-                  })
+                  onChatSelect(
+                    {
+                      chatId: user._id, // Temporary chatId until first message is sent and real chatId is received from backend
+                      participantInfo: user,
+                      lastMessage: "",
+                      timestamp: new Date().toISOString(),
+                      unreadCount: 0,
+                    },
+                    true
+                  )
                 }
                 className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200"
               >
@@ -174,7 +176,7 @@ const ChatList: React.FC<ChatListProps> = ({
                     key={chat.chatId}
                     chat={chat}
                     isActive={activeChat?.chatId === chat.chatId}
-                    onClick={() => onChatSelect(chat)}
+                    onClick={() => onChatSelect(chat, false)}
                     isLoading
                   />
                 );
