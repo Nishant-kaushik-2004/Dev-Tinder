@@ -10,7 +10,7 @@ import axios from "axios";
 
 interface ChatListProps {
   activeChat: Chat | null;
-  onChatSelect: (chat: Chat) => void;
+  onChatSelect: (chat: Chat, isTemp?: boolean) => void;
   isMobile: boolean;
   onToggleSidebar: () => void;
   isLoading: boolean;
@@ -119,9 +119,9 @@ const ChatList: React.FC<ChatListProps> = ({
                   //❌ A chat should NOT be permanently created unless there is at least one message.
                   onChatSelect(
                     {
-                      chatId: user._id, // Temporary chatId until first message is sent and real chatId is received from backend
+                      chatId: "", // Temporary chatId until first message is sent and real chatId is received from backend
                       participantInfo: user,
-                      lastMessage: "",
+                      lastMessage: "No messages yet",
                       timestamp: new Date().toISOString(),
                       unreadCount: 0,
                     },

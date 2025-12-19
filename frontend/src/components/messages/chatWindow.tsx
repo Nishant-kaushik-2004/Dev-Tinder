@@ -1,7 +1,7 @@
 import { ChevronLeft, Send, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./messageBubble";
-import { useOutletContext, useParams } from "react-router";
+import { useNavigate, useOutletContext, useParams } from "react-router";
 import ChatWindowFallback from "./chatWindowFallback";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,18 +27,33 @@ const ChatWindow = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { chat, loggedInUser, onBack, isMobile }: ChatWindowProps =
+  let { activeChat, loggedInUser, onBack, isMobile }: ChatWindowProps =
     useOutletContext();
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const params = useParams();
 
   const chats = useSelector((store: RootState) => store.chats);
 
-  const { chatId } = params;
+  let chatId: string | null = null;
+
+  if (params.chatId) {
+    chatId = params.chatId;
+  } else if (params.userId) {
+    // Find if a temp chat already exist with this userId
+    const tempChat = chats.find((c) => c.participantInfo._id === params.userId);
+    activeChat = tempChat || activeChat;
+  }
+
+  // Route structure:
+  //  /messages
+  //  /messages/chat/:chatId       ← existing chat
+  //  /messages/user/:userId       ← temp chat (before first message)
 
   // Fetch messages for the chat using chatId from params
   useEffect(() => {
+    if (!chatId) return;
     async function fetchMessages() {
       setIsLoading(true);
       try {
@@ -61,6 +76,7 @@ const ChatWindow = () => {
   }, [chatId]);
 
   useEffect(() => {
+    if (!chatId && !activeChat) return;
     const socket = getSocket();
 
     function handleIncoming(newMessage: ReceivedMessage) {
@@ -76,19 +92,26 @@ const ChatWindow = () => {
       // dispatch(updateUnreadCount(newMessage));
 
       if (senderInfo._id === loggedInUser._id) {
-        const chatIdx = chats.findIndex((c) => c.chatId === chat.chatId);
+        // If the message is sent by logged in user himself/herself then it means its a temp chat being converted to permanent chat so we need to update the chatId in the chats list in redux store
+        const chatIdx = chats.findIndex(
+          (c) =>
+            c.participantInfo._id ===
+            chat.participants.find((p) => p !== loggedInUser._id)! // Find using other participant id
+        );
         if (chatIdx === -1) return; // Just for safety (if works correctly than it should never hit as before sending message to a chat loggedIn user must have clicked the chat which results into creation of temp chat in redux)
         dispatch(
           updateChat({
             tempChatIdx: chatIdx,
             newChat: {
+              chatId: chat.chatId,
               lastMessage: messagePayload.text,
               timestamp: new Date().toISOString(),
             },
           })
         );
+        navigate(`/messages/${chatId}`, { replace: true }); // Replace the current route to avoid going back to temp chat route
         return;
-      } // No need to update chats list if the message is sent by logged in user himself/herself.
+      }
 
       // Update chats list in redux store
       const tempChatIdx = chats.findIndex(
@@ -120,6 +143,7 @@ const ChatWindow = () => {
   }, [chatId, dispatch, chats]);
 
   const handleSendMessage = (text: string) => {
+    if (!chatId) return;
     // const newMessage = {
     //   id: Date.now(),
     //   text,
@@ -144,7 +168,7 @@ const ChatWindow = () => {
         photoUrl: loggedInUser.photoUrl,
         about: loggedInUser.about,
       },
-      receiverId: chat.participantInfo._id,
+      receiverId: activeChat.participantInfo._id,
       text,
     });
     // optimistic local update: append message locally, rollback on error if needed
@@ -182,13 +206,13 @@ const ChatWindow = () => {
     }
   }, [message]);
 
-  if (!chatId || !chat) {
+  if (!chatId || !activeChat) {
     return <ChatWindowFallback />;
   }
 
   const user = {
-    name: `${chat.participantInfo.firstName} ${chat.participantInfo.lastName}`,
-    avatar: chat.participantInfo.photoUrl,
+    name: `${activeChat.participantInfo.firstName} ${activeChat.participantInfo.lastName}`,
+    avatar: activeChat.participantInfo.photoUrl,
     status: "online", // This can be dynamic based on real user status
   };
 
