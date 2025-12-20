@@ -97,7 +97,7 @@ const MessagesPage = () => {
     if (socket.connected) {
       ensureJoin();
     } else {
-      // when socket connects, join
+      // when socket connects, join it
       const onConnect = () => ensureJoin();
       socket.on("connect", onConnect);
       return () => {
