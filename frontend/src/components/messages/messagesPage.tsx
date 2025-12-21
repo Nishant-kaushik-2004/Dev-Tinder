@@ -130,7 +130,7 @@ const MessagesPage = () => {
   }, []);
 
   const handleChatSelect = useCallback(
-    (chat: Chat, isTemp: boolean) => {
+    (chat: Chat, isTemp?: boolean) => {
       // setActiveChat(chat);
       if (isMobile) {
         setShowSidebar(false);
@@ -212,7 +212,7 @@ const MessagesPage = () => {
         {/* Using nested routing to render ChatWindow */}
         <Outlet
           context={{
-            chat: activeChat,
+            activeChat: activeChat,
             // onSendMessage: handleSendMessage,
             loggedInUser,
             onBack: handleBack,

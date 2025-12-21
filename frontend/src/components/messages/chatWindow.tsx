@@ -12,7 +12,7 @@ import { IUser } from "../../store/userSlice";
 import { RootState } from "../../store/store";
 
 interface ChatWindowProps {
-  chat: Chat;
+  activeChat: Chat;
   loggedInUser: IUser;
   onBack: () => void;
   isMobile: boolean;
@@ -76,7 +76,7 @@ const ChatWindow = () => {
   }, [chatId]);
 
   useEffect(() => {
-    if (!chatId && !activeChat) return;
+    if (!activeChat) return;
     const socket = getSocket();
 
     function handleIncoming(newMessage: ReceivedMessage) {
@@ -105,7 +105,7 @@ const ChatWindow = () => {
             newChat: {
               chatId: chat.chatId,
               lastMessage: messagePayload.text,
-              timestamp: new Date().toISOString(),
+              timestamp: new Date(messagePayload.timestamp).toISOString(),
             },
           })
         );
@@ -115,14 +115,14 @@ const ChatWindow = () => {
 
       // Update chats list in redux store
       const tempChatIdx = chats.findIndex(
-        (c) => c.participantInfo._id === messagePayload.sender
+        (c) => c.participantInfo._id === senderInfo._id
       );
       const newChat = {
         chatId: chat.chatId,
         participantInfo: senderInfo,
         lastMessage: messagePayload.text,
-        timestamp: new Date().toISOString(),
-        unreadCount: (chats[tempChatIdx]?.unreadCount ?? 0) + 1, // Add one if already exist otherwise 1 if new chat
+        timestamp: new Date(messagePayload.timestamp).toISOString(),
+        unreadCount: 1, // Will be handled later
       };
 
       if (tempChatIdx === -1) {
@@ -141,6 +141,16 @@ const ChatWindow = () => {
       socket.off("messageReceived", handleIncoming);
     };
   }, [chatId, dispatch, chats]);
+
+  //📌 TODO:
+
+  // When user searches for a new user to start chat with, we need to create a temporary chat object with isTemp = true; and add it to chats list in redux store and navigate user to the chat window of the new user but when he clicks back button then remove the that temporary user from store chats.
+
+  //💎 So never show temporary chats in sidebar chat list.
+
+  // In this way only when user sends the first message to that new user then permanent chat will be created in backend and real chatId will be received in messageReceived socket event and we can update the temporary chat in store with real chatId and other details.
+
+  // So at a time only one temporary chat can exist (for the new user chat window).
 
   const handleSendMessage = (text: string) => {
     if (!chatId) return;
@@ -206,7 +216,7 @@ const ChatWindow = () => {
     }
   }, [message]);
 
-  if (!chatId || !activeChat) {
+  if (!activeChat) {
     return <ChatWindowFallback />;
   }
 

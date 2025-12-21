@@ -68,6 +68,7 @@ const App = () => {
           <Route path="/messages" element={<MessagesPage />}>
             <Route index element={<ChatWindowFallback />} />
             <Route path=":chatId" element={<ChatWindow />} />
+            <Route path="user/:userId" element={<ChatWindow />} />
           </Route>
 
           {/* Auth routes outside layout */}
