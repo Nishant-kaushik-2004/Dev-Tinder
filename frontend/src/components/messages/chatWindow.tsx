@@ -164,7 +164,7 @@ const ChatWindow = () => {
 
     // Make Api call to save message to backend  -> But this thing is already happening in sendMessage socket event in backend.
 
-    // get initialized socket connection
+    // get initialized socket connection again
     const socket = getSocket();
 
     // Emit sendMessage socket event to send message
