@@ -150,7 +150,7 @@ const ChatWindow = () => {
 
   // In this way only when user sends the first message to that new user then permanent chat will be created in backend and real chatId will be received in messageReceived socket event and we can update the temporary chat in store with real chatId and other details.
 
-  // So at a time only one temporary chat can exist (for the new user chat window).
+  // So at a time only one temporary chat can exist (for the new user chat window)
 
   const handleSendMessage = (text: string) => {
     if (!chatId) return;
