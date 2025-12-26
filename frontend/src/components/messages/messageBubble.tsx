@@ -1,8 +1,21 @@
 import { Check, CheckCheck } from "lucide-react";
 import formatTimestamp from "../../helper/formatTimeStamp";
+import { MessageType } from "../../utils/types";
+
+interface MessageBubbleType {
+  message: MessageType;
+  isMe: boolean;
+  showAvatar: boolean;
+  avatar: string;
+}
 
 // Message Bubble Component
-const MessageBubble = ({ message, isMe, showAvatar, avatar }) => (
+const MessageBubble = ({
+  message,
+  isMe,
+  showAvatar,
+  avatar,
+}: MessageBubbleType) => (
   <div className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"} mb-4`}>
     {!isMe && showAvatar && (
       <div className="avatar">
@@ -33,7 +46,7 @@ const MessageBubble = ({ message, isMe, showAvatar, avatar }) => (
         </span>
         {isMe && (
           <span className="text-base-content/50">
-            {message.read ? (
+            {message.seenBy.length > 1 ? (
               <CheckCheck className="w-3 h-3 text-blue-500" />
             ) : (
               <Check className="w-3 h-3" />

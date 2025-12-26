@@ -25,18 +25,24 @@ const MessagesPage = () => {
   // To update chats inside chatSlice in redux store
   const dispatch = useDispatch();
 
+  // When we navigate to a different URL like: /messages/abc123 → /messages/xyz456
+  // ✅ React Router re-renders the component, and useParams() gives you the new chatId, which triggers our useEffect.
   const { chatId } = useParams();
+  const { userId } = useParams();
 
   const loggedInUser = useSelector((store: RootState) => store.loggedInUser);
   const chats = useSelector((store: RootState) => store.chats);
 
-  // Set active chat when chatId param changes
+  // Set active chat when chatId or userId param changes
   useEffect(() => {
+    let selectedChat = null;
     if (chatId) {
-      const selectedChat = chats.find((chat) => chat.chatId === chatId);
-      setActiveChat(selectedChat || null);
+      selectedChat = chats.find((chat) => chat.chatId === chatId);
+    } else if (userId) {
+      selectedChat = chats.find((chat) => chat.participantInfo._id == userId);
     }
-  }, [chatId, chats]);
+    setActiveChat(selectedChat || null);
+  }, [chatId, userId, chats]);
 
   const targetUserId = activeChat?.participantInfo?._id ?? null;
 
@@ -136,15 +142,15 @@ const MessagesPage = () => {
         setShowSidebar(false);
       }
 
-      // If the chat is already active, do nothing
-      if (activeChat && activeChat.chatId === chat.chatId) return;
-
       if (isTemp) {
         // If temporary chat, add it to chats list in redux store
         dispatch(addNewChat(chat));
         navigate(`/messages/user/${chat.participantInfo._id}`);
         return;
       }
+
+      // If the chat is already active, do nothing
+      if (activeChat && activeChat.chatId === chat.chatId) return;
 
       navigate(`/messages/${chat.chatId}`);
 

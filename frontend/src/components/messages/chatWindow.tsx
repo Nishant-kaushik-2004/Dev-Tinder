@@ -36,15 +36,7 @@ const ChatWindow = () => {
 
   const chats = useSelector((store: RootState) => store.chats);
 
-  let chatId: string | null = null;
-
-  if (params.chatId) {
-    chatId = params.chatId;
-  } else if (params.userId) {
-    // Find if a temp chat already exist with this userId
-    const tempChat = chats.find((c) => c.participantInfo._id === params.userId);
-    activeChat = tempChat || activeChat;
-  }
+  let chatId: string | null = params.chatId || null;
 
   // Route structure:
   //  /messages
@@ -96,7 +88,7 @@ const ChatWindow = () => {
         const chatIdx = chats.findIndex(
           (c) =>
             c.participantInfo._id ===
-            chat.participants.find((p) => p !== loggedInUser._id)! // Find using other participant id
+            chat.participants.find((p) => p !== loggedInUser._id)! // Find using other participant id (receiver id)
         );
         if (chatIdx === -1) return; // Just for safety (if works correctly than it should never hit as before sending message to a chat loggedIn user must have clicked the chat which results into creation of temp chat in redux)
         dispatch(
@@ -109,7 +101,7 @@ const ChatWindow = () => {
             },
           })
         );
-        navigate(`/messages/${chatId}`, { replace: true }); // Replace the current route to avoid going back to temp chat route
+        navigate(`/messages/${chat.chatId}`, { replace: true }); // Replace the current route to avoid going back to temp chat route
         return;
       }
 
@@ -128,9 +120,11 @@ const ChatWindow = () => {
       if (tempChatIdx === -1) {
         // No temporary chat exist locally so add new chat
         dispatch(addNewChat(newChat));
+        // Works when we receive first message from a new sender where no temporary chat exist locally or we have not opened the chat window of that new user
       } else {
         // Temporary chat exist so convert it to permanent chat or if already permanent just update it
         dispatch(updateChat({ tempChatIdx, newChat }));
+        // Works when we have opened the chat window of a new user (temp chat exist) and that user sends us the first message
       }
     }
 
@@ -144,7 +138,7 @@ const ChatWindow = () => {
 
   //📌 TODO:
 
-  // When user searches for a new user to start chat with, we need to create a temporary chat object with isTemp = true; and add it to chats list in redux store and navigate user to the chat window of the new user but when he clicks back button then remove the that temporary user from store chats.
+  // When user searches for a new user to start chat with, we need to create a temporary chat object with isTemp = true; and add it to chats list in redux store and navigate user to the chat window of the new user but when he clicks back button then remove that temporary user from store chats.
 
   //💎 So never show temporary chats in sidebar chat list.
 
