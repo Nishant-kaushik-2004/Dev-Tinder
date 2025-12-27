@@ -171,6 +171,7 @@ const ChatList: React.FC<ChatListProps> = ({
               </div>
             ) : (
               chats.map((chat) => {
+                if(!chat.chatId) return null;
                 return (
                   <ChatItem
                     key={chat.chatId}

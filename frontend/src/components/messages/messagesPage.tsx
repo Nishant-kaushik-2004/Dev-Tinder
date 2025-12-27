@@ -18,15 +18,15 @@ const MessagesPage = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const socketRef = useRef(getSocket());
-  const prevChatIdRef = useRef<string | null>(null);
+  const prevTargetUserIdRef = useRef<string | null>(null);
 
   // To navigate programmatically between chats
   const navigate = useNavigate();
   // To update chats inside chatSlice in redux store
   const dispatch = useDispatch();
 
-  // When we navigate to a different URL like: /messages/abc123 → /messages/xyz456
-  // ✅ React Router re-renders the component, and useParams() gives you the new chatId, which triggers our useEffect.
+  // When we navigate programmatically to a different URL like: /messages/abc123 → /messages/user/xyz456
+  // ✅ React Router re-renders the component, and useParams() gives you the new chatId or userId, which triggers our useEffect.
   const { chatId } = useParams();
   const { userId } = useParams();
 
@@ -81,46 +81,31 @@ const MessagesPage = () => {
   useEffect(() => {
     const socket = socketRef.current;
 
-    // ensure connected before join
-    const ensureJoin = () => {
-      if (!chatId || !loggedInUser._id || !targetUserId) return;
-      // Leave previous room if exists
-      if (prevChatIdRef.current && prevChatIdRef.current !== chatId) {
-        socket.emit("leaveChat", {
-          senderId: loggedInUser._id,
-          receiverId: targetUserId,
-        });
-      }
+    if (!loggedInUser._id || !targetUserId) return;
+
+    const joinRoom = () => {
       // Join new room
-      // NOTE: Rooms are a server-only concept (i.e. the client does not have access to the list of rooms it has joined).
       socket.emit("joinChat", {
         senderId: loggedInUser._id,
         receiverId: targetUserId,
       });
-      prevChatIdRef.current = chatId;
-    };
+    }; // NOTE: Rooms are a server-only concept (i.e. the client does not have access to the list of rooms it has joined).
 
     if (socket.connected) {
-      ensureJoin();
+      joinRoom();
     } else {
       // when socket connects, join it
-      const onConnect = () => ensureJoin();
-      socket.on("connect", onConnect);
-      return () => {
-        socket.off("connect", onConnect);
-      };
+      socket.once("connect", joinRoom); // Adds the listener only for the next occurrence of the event.
     }
 
     // cleanup only leaves room, does NOT disconnect global socket
     return () => {
-      if (socket && prevChatIdRef.current === chatId) {
-        socket.emit("leaveChat", {
-          senderId: loggedInUser._id,
-          receiverId: targetUserId,
-        });
-      }
-    };
-  }, [chatId, loggedInUser._id, targetUserId]);
+      socket.emit("leaveChat", {
+        senderId: loggedInUser._id,
+        receiverId: targetUserId,
+      }); // 🔹 This cleanup function runs in three situations
+    }; // 1️⃣ When targetUserId or loggedInUser._id changes, 2️⃣ When the component unmounts, 3️⃣ Before re-running the effect if dependencies change.
+  }, [loggedInUser._id, targetUserId]);
 
   // Handle resize
   useEffect(() => {

@@ -27,7 +27,7 @@ const ChatWindow = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  let { activeChat, loggedInUser, onBack, isMobile }: ChatWindowProps =
+  const { activeChat, loggedInUser, onBack, isMobile }: ChatWindowProps =
     useOutletContext();
 
   const dispatch = useDispatch();
@@ -147,7 +147,7 @@ const ChatWindow = () => {
   // So at a time only one temporary chat can exist (for the new user chat window)
 
   const handleSendMessage = (text: string) => {
-    if (!chatId) return;
+    if (!activeChat) return;
     // const newMessage = {
     //   id: Date.now(),
     //   text,
