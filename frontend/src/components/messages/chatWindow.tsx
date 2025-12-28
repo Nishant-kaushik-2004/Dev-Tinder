@@ -21,7 +21,7 @@ interface ChatWindowProps {
 const ChatWindow = () => {
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<MessageType[]>([]);
-  // Need to show skeleton loader while messages are being fetched using this loading state
+  // Need to show skeleton loader while messages are being fetched using this loading state.
   const [isLoading, setIsLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
