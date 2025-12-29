@@ -34,9 +34,23 @@ const ChatWindow = () => {
   const navigate = useNavigate();
   const params = useParams();
 
+  const userIdRef = useRef<string | null>(params.userId || null);
+
   const chats = useSelector((store: RootState) => store.chats);
 
   let chatId: string | null = params.chatId || null;
+
+  // If userId param exist then it means its a temporary chat so we need to remove the temporary chat from redux store when component unmounts if no message was sent.
+  useEffect(() => {
+    const tempChatIdx = chats.findIndex(
+      (c) => c.participantInfo._id === params.userId
+    );
+    if (tempChatIdx !== -1) {
+      // Remove the temporary chat from redux store
+      dispatch(updateChat({ tempChatIdx, newChat: null }));
+    }
+  }, [params,activeChat]); // params.userId and chats inside it are frozen values
+  // If route changes or chats update → cleanup won’t reflect latest state
 
   // Route structure:
   //  /messages
@@ -45,6 +59,12 @@ const ChatWindow = () => {
 
   // Fetch messages for the chat using chatId from params
   useEffect(() => {
+    if (params.userId) {
+      // Temporary chat, no messages to fetch
+      setChatMessages([]);
+      setIsLoading(false);
+      return;
+    }
     if (!chatId) return;
     async function fetchMessages() {
       setIsLoading(true);
@@ -98,6 +118,7 @@ const ChatWindow = () => {
               chatId: chat.chatId,
               lastMessage: messagePayload.text,
               timestamp: new Date(messagePayload.timestamp).toISOString(),
+              isTemporary: false,
             },
           })
         );
@@ -115,6 +136,7 @@ const ChatWindow = () => {
         lastMessage: messagePayload.text,
         timestamp: new Date(messagePayload.timestamp).toISOString(),
         unreadCount: 1, // Will be handled later
+        isTemporary: false,
       };
 
       if (tempChatIdx === -1) {

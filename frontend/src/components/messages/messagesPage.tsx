@@ -121,13 +121,13 @@ const MessagesPage = () => {
   }, []);
 
   const handleChatSelect = useCallback(
-    (chat: Chat, isTemp?: boolean) => {
+    (chat: Chat) => {
       // setActiveChat(chat);
       if (isMobile) {
         setShowSidebar(false);
       }
 
-      if (isTemp) {
+      if (chat.isTemporary) {
         // If temporary chat, add it to chats list in redux store
         dispatch(addNewChat(chat));
         navigate(`/messages/user/${chat.participantInfo._id}`);
