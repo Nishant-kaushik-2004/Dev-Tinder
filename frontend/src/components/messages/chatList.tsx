@@ -10,7 +10,7 @@ import axios from "axios";
 
 interface ChatListProps {
   activeChat: Chat | null;
-  onChatSelect: (chat: Chat, isTemp?: boolean) => void;
+  onChatSelect: (chat?: Chat, newUser?: userInfo) => void;
   isMobile: boolean;
   onToggleSidebar: () => void;
   isLoading: boolean;
@@ -117,14 +117,12 @@ const ChatList: React.FC<ChatListProps> = ({
                 key={user._id}
                 onClick={() =>
                   //❌ A chat should NOT be permanently created unless there is at least one message.
-                  onChatSelect({
-                    chatId: "", // Temporary chatId until first message is sent and real chatId is received from backend
-                    participantInfo: user,
-                    lastMessage: "No messages yet",
-                    timestamp: new Date().toISOString(),
-                    unreadCount: 0,
-                    isTemporary: true,
-                  })
+                  onChatSelect(
+                    // chatId: "", // Temporary chatId until first message is sent and real chatId is received from backend
+                    undefined,
+                    user
+                    // isTemporary: true, // No need to set this flag as we will create temp chat in chatWindow itself using targetUserId, so that url sharing works seamlessly
+                  )
                 }
                 className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200"
               >
@@ -169,13 +167,12 @@ const ChatList: React.FC<ChatListProps> = ({
               </div>
             ) : (
               chats.map((chat) => {
-                if (!chat.chatId) return null;
                 return (
                   <ChatItem
                     key={chat.chatId}
                     chat={chat}
                     isActive={activeChat?.chatId === chat.chatId}
-                    onClick={() => onChatSelect(chat, false)}
+                    onClick={() => onChatSelect(chat)}
                     isLoading
                   />
                 );

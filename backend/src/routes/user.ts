@@ -215,4 +215,33 @@ userRouter.get("/users/search", async (req, res) => {
   }
 });
 
+userRouter.get("/user/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid User ID" });
+    }
+
+    const user = await User.findById(userId).select(
+      "_id firstName lastName email photoUrl about"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "User fetched successfully",
+      user,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return res.status(400).json({ message: "ERROR : " + error.message });
+    } else {
+      return res.status(500).json({ message: "ERROR : Something went wrong" });
+    }
+  }
+});
+
 export default userRouter;

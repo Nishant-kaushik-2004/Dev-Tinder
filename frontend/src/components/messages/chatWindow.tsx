@@ -19,6 +19,7 @@ interface ChatWindowProps {
 }
 // Chat Window Component
 const ChatWindow = () => {
+  const [tempChat, setTempChat] = useState<Chat | null>(null);
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<MessageType[]>([]);
   // Need to show skeleton loader while messages are being fetched using this loading state.
@@ -34,23 +35,49 @@ const ChatWindow = () => {
   const navigate = useNavigate();
   const params = useParams();
 
-  const userIdRef = useRef<string | null>(params.userId || null);
-
   const chats = useSelector((store: RootState) => store.chats);
 
   let chatId: string | null = params.chatId || null;
 
-  // If userId param exist then it means its a temporary chat so we need to remove the temporary chat from redux store when component unmounts if no message was sent.
+  const userId: string | null = params.userId || null;
+
+  // If userId is present in params then probably(not always) we are in a temporary chat (before first message) so we need to create a temporary chat object locally to show chat window properly.
   useEffect(() => {
-    const tempChatIdx = chats.findIndex(
-      (c) => c.participantInfo._id === params.userId
-    );
-    if (tempChatIdx !== -1) {
-      // Remove the temporary chat from redux store
-      dispatch(updateChat({ tempChatIdx, newChat: null }));
-    }
-  }, [params,activeChat]); // params.userId and chats inside it are frozen values
-  // If route changes or chats update → cleanup won’t reflect latest state
+    if (!userId || activeChat) return; // If activeChat already exist means chat with this user already present then no need to create temp chat.
+
+    const fetchUserInfo = async () => {
+      setIsLoading(true);
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/user/${userId}`,
+          { withCredentials: true }
+        );
+        if (!res.data.user) {
+          throw new Error("User not found");
+        }
+        const tempChat: Chat = {
+          chatId: "", // Temporary chat has no chatId
+          participantInfo: res.data.user,
+          lastMessage: "",
+          timestamp: new Date().toISOString(),
+          unreadCount: 0,
+        };
+        setTempChat(tempChat);
+      } catch (error) {
+        const errorMsg =
+          error instanceof Error ? error.message : "Unknown error occured";
+        console.error("Error fetching user:", errorMsg);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+
+    return () => {
+      setTempChat(null); // Cleanup temp chat on unmount or when dependencies change
+    };
+  }, [userId, activeChat]);
 
   // Route structure:
   //  /messages
@@ -59,12 +86,6 @@ const ChatWindow = () => {
 
   // Fetch messages for the chat using chatId from params
   useEffect(() => {
-    if (params.userId) {
-      // Temporary chat, no messages to fetch
-      setChatMessages([]);
-      setIsLoading(false);
-      return;
-    }
     if (!chatId) return;
     async function fetchMessages() {
       setIsLoading(true);
@@ -88,46 +109,41 @@ const ChatWindow = () => {
   }, [chatId]);
 
   useEffect(() => {
-    if (!activeChat) return;
+    if (!activeChat && !tempChat) return;
     const socket = getSocket();
 
     function handleIncoming(newMessage: ReceivedMessage) {
       console.log(newMessage);
       const { messagePayload, senderInfo, chat } = newMessage;
       // Only update if message belongs to the currently open chat
-      if (chat.chatId === chatId) {
-        // React passes the latest state value into the function (prev), even if multiple state updates are queued. So, no risk of losing any new messages which arrive in quick succession.
-        setChatMessages((prevMessages) => [...prevMessages, messagePayload]);
+      if (
+        chat.chatId === chatId ||
+        (tempChat && tempChat.participantInfo._id === senderInfo._id)
+      ) {
+        setChatMessages((prevMessages) => [...prevMessages, messagePayload]); // React passes the latest state value into the function (prev), even if multiple state updates are queued. So, no risk of losing any new messages which arrive in quick succession.
       }
 
       // Optionally update unread count in chatList here
       // dispatch(updateUnreadCount(newMessage));
 
       if (senderInfo._id === loggedInUser._id) {
-        // If the message is sent by logged in user himself/herself then it means its a temp chat being converted to permanent chat so we need to update the chatId in the chats list in redux store
-        const chatIdx = chats.findIndex(
-          (c) =>
-            c.participantInfo._id ===
-            chat.participants.find((p) => p !== loggedInUser._id)! // Find using other participant id (receiver id)
-        );
-        if (chatIdx === -1) return; // Just for safety (if works correctly than it should never hit as before sending message to a chat loggedIn user must have clicked the chat which results into creation of temp chat in redux)
-        dispatch(
-          updateChat({
-            tempChatIdx: chatIdx,
-            newChat: {
-              chatId: chat.chatId,
-              lastMessage: messagePayload.text,
-              timestamp: new Date(messagePayload.timestamp).toISOString(),
-              isTemporary: false,
-            },
-          })
-        );
+        // If the message is sent by logged in user himself/herself and chatId is not current activeChat Id then it means its a 1st message of temp chat which needs to be converted to permanent chat
+        const newChat = {
+          chatId: chat.chatId,
+          participantInfo: tempChat?.participantInfo, // As senderInfo is logged in user himself/herself so participantInfo will be of tempChat
+          lastMessage: messagePayload.text,
+          timestamp: new Date(messagePayload.timestamp).toISOString(),
+          unreadCount: 1,
+        };
+        dispatch(addNewChat(newChat));
+        // setTempChat(null); // Clear the temporary chat after converting to permanent chat
+        setChatMessages((prevMessages) => [...prevMessages, messagePayload]);
         navigate(`/messages/${chat.chatId}`, { replace: true }); // Replace the current route to avoid going back to temp chat route
         return;
       }
 
       // Update chats list in redux store
-      const tempChatIdx = chats.findIndex(
+      const existingChatIdx = chats.findIndex(
         (c) => c.participantInfo._id === senderInfo._id
       );
       const newChat = {
@@ -136,17 +152,20 @@ const ChatWindow = () => {
         lastMessage: messagePayload.text,
         timestamp: new Date(messagePayload.timestamp).toISOString(),
         unreadCount: 1, // Will be handled later
-        isTemporary: false,
       };
 
-      if (tempChatIdx === -1) {
-        // No temporary chat exist locally so add new chat
-        dispatch(addNewChat(newChat));
-        // Works when we receive first message from a new sender where no temporary chat exist locally or we have not opened the chat window of that new user
+      if (existingChatIdx === -1) {
+        // No existing chat exist locally so add new chat
+        dispatch(addNewChat(newChat)); // Works when we receive first message from a new sender and we have not opened the chat window of that new user
+
+        if (senderInfo._id === tempChat?.participantInfo._id) {
+          // If the new message is from the user of whom temp chat exist(opened) locally then we need to clear the temp chat as permanent chat is created now.
+          // setTempChat(null);
+          navigate(`/messages/${chat.chatId}`, { replace: true });
+        }
       } else {
-        // Temporary chat exist so convert it to permanent chat or if already permanent just update it
-        dispatch(updateChat({ tempChatIdx, newChat }));
-        // Works when we have opened the chat window of a new user (temp chat exist) and that user sends us the first message
+        // Update existing chat
+        dispatch(updateChat({ existingChatIdx, newChat }));
       }
     }
 
@@ -158,19 +177,17 @@ const ChatWindow = () => {
     };
   }, [chatId, dispatch, chats]);
 
-  //📌 TODO:
-
   // When user searches for a new user to start chat with, we need to create a temporary chat object with isTemp = true; and add it to chats list in redux store and navigate user to the chat window of the new user but when he clicks back button then remove that temporary user from store chats.
 
   //💎 So never show temporary chats in sidebar chat list.
 
   // In this way only when user sends the first message to that new user then permanent chat will be created in backend and real chatId will be received in messageReceived socket event and we can update the temporary chat in store with real chatId and other details.
 
-  // So at a time only one temporary chat can exist (for the new user chat window)
+  // So at a time only one temporary chat can exist (in the new user chat window)
 
   const handleSendMessage = (text: string) => {
-    if (!activeChat) return;
-    // const newMessage = {
+    if (!activeChat && !tempChat) return;
+    // const newMessage = { // Used when optimistic local update is needed
     //   id: Date.now(),
     //   text,
     //   sender: loggedInUser._id,
@@ -180,11 +197,10 @@ const ChatWindow = () => {
 
     // Make Api call to save message to backend  -> But this thing is already happening in sendMessage socket event in backend.
 
-    // get initialized socket connection again
-    const socket = getSocket();
+    const socket = getSocket(); // get initialized or check socket connection again
 
-    // Emit sendMessage socket event to send message
     socket.emit("sendMessage", {
+      // Emit sendMessage socket event to send message
       senderId: loggedInUser._id,
       senderInfo: {
         _id: loggedInUser._id,
@@ -232,13 +248,14 @@ const ChatWindow = () => {
     }
   }, [message]);
 
-  if (!activeChat) {
+  if (!activeChat && !tempChat) {
     return <ChatWindowFallback />;
   }
 
+  const chat = activeChat || tempChat;
   const user = {
-    name: `${activeChat.participantInfo.firstName} ${activeChat.participantInfo.lastName}`,
-    avatar: activeChat.participantInfo.photoUrl,
+    name: `${chat.participantInfo?.firstName} ${chat.participantInfo.lastName}`,
+    avatar: chat.participantInfo?.photoUrl,
     status: "online", // This can be dynamic based on real user status
   };
 

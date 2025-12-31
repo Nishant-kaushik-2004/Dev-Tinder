@@ -93,6 +93,9 @@ const InitializeSocket = (server: HttpServer) => {
         console.log("User or Target User does not exist");
         return;
       }
+
+      // TODO: Check if both users are friends/connected before allowing to join chat
+
       // Create a unique room (roomId) for the two users and join the current user socket to that room.
       const roomId = getSecretRoomId(senderId, receiverId);
       console.log("Joining Room: " + roomId);

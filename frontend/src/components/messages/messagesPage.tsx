@@ -6,7 +6,7 @@ import { Outlet, useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { addNewChat, setChats } from "../../store/chatsSlice";
 import axios from "axios";
-import { Chat } from "../../utils/types";
+import { Chat, userInfo } from "../../utils/types";
 import { RootState } from "../../store/store";
 import getSocket from "../../utils/socket";
 
@@ -18,12 +18,10 @@ const MessagesPage = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const socketRef = useRef(getSocket());
-  const prevTargetUserIdRef = useRef<string | null>(null);
 
-  // To navigate programmatically between chats
-  const navigate = useNavigate();
-  // To update chats inside chatSlice in redux store
-  const dispatch = useDispatch();
+  
+  const navigate = useNavigate(); // To navigate programmatically between chats
+  const dispatch = useDispatch(); // To update chats inside chatSlice in redux store
 
   // When we navigate programmatically to a different URL like: /messages/abc123 → /messages/user/xyz456
   // ✅ React Router re-renders the component, and useParams() gives you the new chatId or userId, which triggers our useEffect.
@@ -40,11 +38,14 @@ const MessagesPage = () => {
       selectedChat = chats.find((chat) => chat.chatId === chatId);
     } else if (userId) {
       selectedChat = chats.find((chat) => chat.participantInfo._id == userId);
+      if (selectedChat) { // If chat already exists with this user, navigate to that chatId
+        navigate(`/messages/${selectedChat.chatId}`, { replace: true });
+      }
     }
     setActiveChat(selectedChat || null);
   }, [chatId, userId, chats]);
 
-  const targetUserId = activeChat?.participantInfo?._id ?? null;
+  const targetUserId = userId ?? activeChat?.participantInfo?._id ?? null;
 
   // Fetch chats of the logged in user from backend
   useEffect(() => {
@@ -121,23 +122,22 @@ const MessagesPage = () => {
   }, []);
 
   const handleChatSelect = useCallback(
-    (chat: Chat) => {
+    (chat?: Chat, newUser?: userInfo) => {
       // setActiveChat(chat);
       if (isMobile) {
         setShowSidebar(false);
       }
 
-      if (chat.isTemporary) {
-        // If temporary chat, add it to chats list in redux store
-        dispatch(addNewChat(chat));
-        navigate(`/messages/user/${chat.participantInfo._id}`);
+      if (newUser) {
+        // dispatch(addNewChat(chat));
+        navigate(`/messages/user/${newUser?._id}`);
         return;
       }
 
       // If the chat is already active, do nothing
-      if (activeChat && activeChat.chatId === chat.chatId) return;
+      if (activeChat && activeChat.chatId === chat?.chatId) return;
 
-      navigate(`/messages/${chat.chatId}`);
+      navigate(`/messages/${chat?.chatId}`);
 
       // Mark messages as read
       // if (chat.unreadCount > 0) {
