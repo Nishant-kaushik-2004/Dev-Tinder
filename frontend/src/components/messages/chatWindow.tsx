@@ -43,7 +43,7 @@ const ChatWindow = () => {
 
   // If userId is present in params then probably(not always) we are in a temporary chat (before first message) so we need to create a temporary chat object locally to show chat window properly.
   useEffect(() => {
-    if (!userId || activeChat) return; // If activeChat already exist means chat with this user already present then no need to create temp chat.
+    if (!userId || activeChat) return; // If activeChat already exist means chat with this user already present then no need to create temp chat
 
     const fetchUserInfo = async () => {
       setIsLoading(true);
