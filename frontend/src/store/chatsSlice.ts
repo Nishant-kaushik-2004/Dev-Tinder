@@ -29,9 +29,9 @@ export const chatsSlice = createSlice({
 
     // Data updates frequently (new message(it requires updating last message, timestamp, unread count…) so we merge updates
     updateChat: (state, action) => {
-      const { tempChatIdx, newChat } = action.payload;
-      // Update existing temporary chat (or permanent chat if not new participant message)
-      state[tempChatIdx] = { ...state[tempChatIdx], ...newChat };
+      const { existingChatIdx, newChat } = action.payload;
+      // Update existing chat
+      state[existingChatIdx] = { ...state[existingChatIdx], ...newChat };
     }, // Convert temporary chat to permanent chat when first message is sent and real chatId is received from backend or first message is received from a new participant
 
     // For messages from a new sender where no temporary chat exist locally

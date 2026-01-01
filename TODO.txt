@@ -4,3 +4,5 @@ Otherwise make it fetch only for routes other than login and signup.
 2. Add status(online/offline/away/seen long time ago/etc.) field also to the user schema or after dynamically.
 
 3. Not handling unreadCount for different chats as of now, later should need to fix it everywhere.
+
+4. TODO after 1 jan 2025 -> Need to fix new chat addition at the reciever side when a user messages for the 1st time (currently not showing a new chat in the sidebar until refresh).

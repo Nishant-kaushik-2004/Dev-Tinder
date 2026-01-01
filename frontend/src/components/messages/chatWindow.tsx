@@ -127,6 +127,27 @@ const ChatWindow = () => {
       // dispatch(updateUnreadCount(newMessage));
 
       if (senderInfo._id === loggedInUser._id) {
+        console.log("Goes inside if block");
+
+        if (!tempChat) {
+          // It means its not the first message(of temp chat) so just update existing chat in store
+          const existingChatIdx = chats.findIndex(
+            (c) => c.chatId === chat.chatId
+          );
+          if (existingChatIdx === -1) return; // Just a safety check
+          dispatch(
+            updateChat({
+              existingChatIdx,
+              newChat: {
+                lastMessage: messagePayload.text,
+                timestamp: new Date(messagePayload.timestamp).toISOString(),
+                unreadCount: chats[existingChatIdx].unreadCount, // No change in unread count when logged in user himself/herself sends the message
+              },
+            })
+          );
+          return;
+        }
+
         // If the message is sent by logged in user himself/herself and chatId is not current activeChat Id then it means its a 1st message of temp chat which needs to be converted to permanent chat
         const newChat = {
           chatId: chat.chatId,
@@ -137,7 +158,7 @@ const ChatWindow = () => {
         };
         dispatch(addNewChat(newChat));
         // setTempChat(null); // Clear the temporary chat after converting to permanent chat
-        setChatMessages((prevMessages) => [...prevMessages, messagePayload]);
+        setChatMessages(() => [messagePayload]);
         navigate(`/messages/${chat.chatId}`, { replace: true }); // Replace the current route to avoid going back to temp chat route
         return;
       }
@@ -210,7 +231,7 @@ const ChatWindow = () => {
         photoUrl: loggedInUser.photoUrl,
         about: loggedInUser.about,
       },
-      receiverId: activeChat.participantInfo._id,
+      receiverId: tempChat ? tempChat.participantInfo._id : activeChat.participantInfo._id,
       text,
     });
     // optimistic local update: append message locally, rollback on error if needed

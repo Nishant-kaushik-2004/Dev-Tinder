@@ -24,7 +24,7 @@ const ChatItem = ({ chat, isActive, onClick, isLoading }: ChatItemProps) => {
   // }
 
   const user = chat.participantInfo;
-  const fullName = `${user.firstName} ${user.lastName}`;
+  const fullName = `${user?.firstName} ${user?.lastName}`;
 
   return (
     <div
@@ -35,7 +35,7 @@ const ChatItem = ({ chat, isActive, onClick, isLoading }: ChatItemProps) => {
     >
       <div className="avatar">
         <div className="w-12 h-12 rounded-full">
-          <img src={user.photoUrl} alt={fullName} />
+          <img src={user?.photoUrl} alt={fullName} />
         </div>
       </div>
 
@@ -45,16 +45,16 @@ const ChatItem = ({ chat, isActive, onClick, isLoading }: ChatItemProps) => {
             {fullName}
           </h3>
           <span className="text-xs text-base-content/60 ml-2 flex-shrink-0">
-            {formatTimestamp(new Date(chat.timestamp))}
+            {formatTimestamp(new Date(chat?.timestamp))}
           </span>
         </div>
         <p className="text-sm text-base-content/70 truncate">
-          {chat.lastMessage}
+          {chat?.lastMessage}
         </p>
       </div>
 
-      {chat.unreadCount > 0 && (
-        <div className="badge badge-primary badge-sm">{chat.unreadCount}</div>
+      {chat?.unreadCount > 0 && (
+        <div className="badge badge-primary badge-sm">{chat?.unreadCount}</div>
       )}
     </div>
   );
