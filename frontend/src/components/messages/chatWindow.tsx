@@ -10,6 +10,7 @@ import getSocket from "../../utils/socket";
 import { Chat, MessageType, ReceivedMessage } from "../../utils/types";
 import { IUser } from "../../store/userSlice";
 import { RootState } from "../../store/store";
+import ChatWindowSkeleton from "./chatWindowSkeLoader";
 
 interface ChatWindowProps {
   activeChat: Chat;
@@ -40,6 +41,11 @@ const ChatWindow = () => {
   let chatId: string | null = params.chatId || null;
 
   const userId: string | null = params.userId || null;
+
+  useEffect(() => {
+    // Reset chat messages when activeChat or tempChat changes
+    setChatMessages([]);
+  }, [activeChat, tempChat]);
 
   // If userId is present in params then probably(not always) we are in a temporary chat (before first message) so we need to create a temporary chat object locally to show chat window properly.
   useEffect(() => {
@@ -84,7 +90,7 @@ const ChatWindow = () => {
   //  /messages/chat/:chatId       ← existing chat
   //  /messages/user/:userId       ← temp chat (before first message)
 
-  // Fetch messages for the chat using chatId from params
+  // Fetch messages for the chat using chatId from params (if present)
   useEffect(() => {
     if (!chatId) return;
     async function fetchMessages() {
@@ -108,6 +114,7 @@ const ChatWindow = () => {
     fetchMessages();
   }, [chatId]);
 
+  // Setup socket listener for incoming messages
   useEffect(() => {
     if (!activeChat && !tempChat) return;
     const socket = getSocket();
@@ -158,8 +165,7 @@ const ChatWindow = () => {
         };
         dispatch(addNewChat(newChat));
         // setTempChat(null); // Clear the temporary chat after converting to permanent chat
-        setChatMessages(() => [messagePayload]);
-        navigate(`/messages/${chat.chatId}`, { replace: true }); // Replace the current route to avoid going back to temp chat route
+        navigate(`/messages/${chat.chatId}`, { replace: true }); // Replace the current route in history to avoid going back to temp chat route
         return;
       }
 
@@ -196,7 +202,7 @@ const ChatWindow = () => {
       // Removes the "handleIncoming" listener from the listener array for the event named messageReceived.
       socket.off("messageReceived", handleIncoming);
     };
-  }, [chatId, dispatch, chats]);
+  }, [chatId, chats, tempChat, activeChat, loggedInUser._id]);
 
   // When user searches for a new user to start chat with, we need to create a temporary chat object with isTemp = true; and add it to chats list in redux store and navigate user to the chat window of the new user but when he clicks back button then remove that temporary user from store chats.
 
@@ -231,7 +237,9 @@ const ChatWindow = () => {
         photoUrl: loggedInUser.photoUrl,
         about: loggedInUser.about,
       },
-      receiverId: tempChat ? tempChat.participantInfo._id : activeChat.participantInfo._id,
+      receiverId: tempChat
+        ? tempChat.participantInfo._id
+        : activeChat.participantInfo._id,
       text,
     });
     // optimistic local update: append message locally, rollback on error if needed
@@ -268,6 +276,10 @@ const ChatWindow = () => {
       return () => clearTimeout(timer);
     }
   }, [message]);
+
+  if (isLoading) {
+    return <ChatWindowSkeleton isMobile={isMobile} />;
+  }
 
   if (!activeChat && !tempChat) {
     return <ChatWindowFallback />;
