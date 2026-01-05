@@ -6,12 +6,23 @@ import ProfileCardPreview from "./profileCardPreview";
 import Toast from "../toast";
 import { DEVELOPER_SKILLS } from "../../data/mockDevelopers";
 import { setUser } from "../../store/userSlice";
+import { RootState } from "../../store/store";
 
 const EditProfilePage = () => {
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state: RootState) => state.loggedInUser);
   const dispatch = useDispatch();
 
-  const [formData, setFormData] = useState({
+  interface formDataType {
+    firstName: string;
+    lastName: string;
+    age: string | number;
+    gender: "male" | "female" | "other" | "";
+    photoUrl: string;
+    about: string;
+    skills: string[];
+  }
+
+  const [formData, setFormData] = useState<formDataType>({
     firstName: "",
     lastName: "",
     age: "",
@@ -23,10 +34,12 @@ const EditProfilePage = () => {
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [toast, setToast] = useState(null);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [toast, setToast] = useState<{ message: string; type: string } | null>(
+    null
+  );
   const [skillInput, setSkillInput] = useState("");
-  const [skillSuggestions, setSkillSuggestions] = useState([]);
+  const [skillSuggestions, setSkillSuggestions] = useState<string[]>([]);
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -68,7 +81,7 @@ const EditProfilePage = () => {
   /**
    * Input sanitization
    */
-  const sanitizeInput = (input) => {
+  const sanitizeInput = (input: string | number) => {
     if (typeof input !== "string") return input;
     return input.trim().replace(/[<>]/g, "");
   };
@@ -76,7 +89,7 @@ const EditProfilePage = () => {
   /**
    * URL validation
    */
-  const validateUrl = (url) => {
+  const validateUrl = (url: string) => {
     try {
       new URL(url);
       return true;
@@ -88,7 +101,11 @@ const EditProfilePage = () => {
   /**
    * Handle input changes with validation
    */
-  const handleInputChange = (e) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
     let processedValue = sanitizeInput(value);
 
@@ -97,7 +114,8 @@ const EditProfilePage = () => {
       processedValue = value === "" ? "" : parseInt(value) || "";
     } else if (name === "firstName" || name === "lastName") {
       processedValue =
-        processedValue.charAt(0).toUpperCase() + processedValue.slice(1);
+        String(processedValue).charAt(0).toUpperCase() +
+        String(processedValue).slice(1);
     }
 
     setFormData((prev) => ({
@@ -117,13 +135,15 @@ const EditProfilePage = () => {
   /**
    * Handle skill input
    */
-  const handleSkillInputChange = (e) => {
-    const value = sanitizeInput(e.target.value);
+  const handleSkillInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    const value = sanitizeInput(e.target.value) as string;
     setSkillInput(value);
 
     if (value.length > 0) {
-      const suggestions = DEVELOPER_SKILLS.filter(
-        (skill) =>
+      const suggestions: string[] = DEVELOPER_SKILLS.filter(
+        (skill: string) =>
           skill.toLowerCase().includes(value.toLowerCase()) &&
           !formData.skills.includes(skill)
       ).slice(0, 5);
@@ -137,7 +157,7 @@ const EditProfilePage = () => {
   /**
    * Add skill
    */
-  const addSkill = (skill) => {
+  const addSkill = (skill: string): void => {
     const trimmedSkill = skill.trim();
     if (trimmedSkill && !formData.skills.includes(trimmedSkill)) {
       setFormData((prev) => ({
@@ -152,7 +172,7 @@ const EditProfilePage = () => {
   /**
    * Remove skill
    */
-  const removeSkill = (skillToRemove) => {
+  const removeSkill = (skillToRemove: string): void => {
     setFormData((prev) => ({
       ...prev,
       skills: prev.skills.filter((skill) => skill !== skillToRemove),
@@ -162,7 +182,7 @@ const EditProfilePage = () => {
   /**
    * Handle skill input key press
    */
-  const handleSkillKeyPress = (e) => {
+  const handleSkillKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
       if (skillSuggestions.length > 0) {
@@ -179,7 +199,7 @@ const EditProfilePage = () => {
    * Form validation
    */
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.firstName || formData.firstName.length < 3) {
       newErrors.firstName = "First name must be at least 3 characters";
@@ -193,7 +213,7 @@ const EditProfilePage = () => {
       newErrors.lastName = "Last name must not exceed 30 characters";
     }
 
-    if (formData.age && formData.age < 18) {
+    if (formData.age && Number(formData.age) < 18) {
       newErrors.age = "You must be at least 18 years old";
     }
 
@@ -225,11 +245,22 @@ const EditProfilePage = () => {
     setIsLoading(true);
 
     try {
+      // Define payload type
+      type PayloadType = {
+        firstName: string;
+        lastName: string;
+        age?: number;
+        gender?: "male" | "female" | "other";
+        photoUrl?: string;
+        about?: string;
+        skills?: string[];
+      };
+
       // Prepare payload
-      const payload = {
+      const payload: PayloadType = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        age: formData.age ? parseInt(formData.age) : undefined,
+        age: formData.age ? parseInt(String(formData.age)) : undefined,
         gender: formData.gender || undefined,
         photoUrl: formData.photoUrl || undefined,
         about: formData.about || undefined,
@@ -238,7 +269,9 @@ const EditProfilePage = () => {
 
       // Remove undefined fields
       Object.keys(payload).forEach(
-        (key) => payload[key] === undefined && delete payload[key]
+        (key) =>
+          payload[key as keyof PayloadType] === undefined &&
+          delete payload[key as keyof PayloadType]
       );
 
       const response = await axios.patch(
@@ -259,8 +292,9 @@ const EditProfilePage = () => {
       // In real app: dispatch(updateUser(response.data.user));
       console.log("Profile updated:", response.data);
     } catch (error) {
+      const axiosError = error as any;
       const errorMessage =
-        error.response?.data?.message ||
+        axiosError?.response?.data?.message ||
         "Failed to update profile. Please try again!";
 
       setToast({

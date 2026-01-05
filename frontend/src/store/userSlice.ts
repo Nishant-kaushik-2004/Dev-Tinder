@@ -6,7 +6,7 @@ export interface IUser {
   lastName: string;
   email: string;
   age?: number;
-  gender?: string;
+  gender?: "male" | "female" | "other" | "";
   photoUrl: string;
   about: string;
   skills?: string[];
