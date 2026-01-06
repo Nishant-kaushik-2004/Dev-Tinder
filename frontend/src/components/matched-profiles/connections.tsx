@@ -1,36 +1,46 @@
 import { useState, useEffect, useMemo } from "react";
 import { Search, Heart, User, ArrowUpDown, Sparkles } from "lucide-react";
-import { mockConnections } from "../../data/mockConnections";
 import { useNavigate } from "react-router";
 import ConnectionCard from "./connectionCard";
 import {
   ConnectionsGridSkeleton,
   SearchAndSortBarSkeleton,
-} from "./MatchesLoadingState";
+} from "./matchesLoadingState";
 import SearchAndSortBar from "./searchAndSortbar";
+import { IConnection } from "../../utils/types";
+import axios from "axios";
 
 // Main MatchesPage Component
 const MatchesPage = () => {
-  const [connections, setConnections] = useState([]);
+  const [connections, setConnections] = useState<IConnection[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("newest");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
-
+  console.log(sortOrder);
   // Simulate API call to fetch connections
   useEffect(() => {
     const fetchConnections = async () => {
       setIsLoading(true);
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      try {
+        // Simulate API delay
+        // await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // In real app, this would be:
-      // const response = await axios.get('/api/connections/accepted');
-      // setConnections(response.data);
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/user/connections`,
+          { withCredentials: true }
+        );
 
-      setConnections(mockConnections);
-      setIsLoading(false);
+        if (!res.data.connections) throw new Error("No connections data found");
+
+        setConnections(res.data.connections);
+        // setConnections(mockConnections);
+      } catch (error) {
+        console.error("Error fetching connections:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchConnections();
@@ -40,8 +50,8 @@ const MatchesPage = () => {
   const filteredAndSortedConnections = useMemo(() => {
     let filtered = connections;
 
-    // Apply search filter
-    if (searchTerm.trim()) {
+    if (!searchTerm.trim()) {
+      // Apply search filter
       const searchLower = searchTerm.toLowerCase();
       filtered = connections.filter(
         (connection) =>
@@ -54,13 +64,13 @@ const MatchesPage = () => {
 
     // Apply sorting
     const sorted = [...filtered].sort((a, b) => {
-      const dateA = new Date(a.createdAt);
-      const dateB = new Date(b.createdAt);
+      const dateA = new Date(a.connectedAt);
+      const dateB = new Date(b.connectedAt);
 
       if (sortOrder === "newest") {
-        return dateB - dateA; // Newest first
+        return dateB.getTime() - dateA.getTime(); // Newest first
       } else {
-        return dateA - dateB; // Oldest first
+        return dateA.getTime() - dateB.getTime(); // Oldest first
       }
     });
 
@@ -68,7 +78,7 @@ const MatchesPage = () => {
   }, [connections, searchTerm, sortOrder]);
 
   // Handle connection card click
-  const handleConnectionClick = (userId) => {
+  const handleConnectionClick = (userId: string) => {
     console.log("Navigate to profile:", userId);
     // In real app: navigate(`/profile/${userId}`);
     navigate(`/user?user=${userId}`);

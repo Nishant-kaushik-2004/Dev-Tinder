@@ -15,7 +15,7 @@ declare global {
 const userRouter = express.Router();
 
 const USER_SAFE_DATA =
-  "firstName lastName photoUrl age gender about skills location isFresher experience company jobTitle profileViews";
+  "firstName lastName photoUrl age gender about skills location isFresher experience company jobTitle";
 
 // Get all the pending connections of the loggedIn user.
 userRouter.get("/user/requests/received", async (req, res) => {
@@ -54,7 +54,7 @@ userRouter.get("/user/connections", async (req, res) => {
     if (!loggedInUserId)
       return res.status(401).json({
         message:
-          "You are Unauthorised, Please login first to see all connections!",
+          "You are Unauthorised, Please login first to see your connections!",
       });
 
     const connectionsData = await ConnectionReqModel.find({
@@ -65,12 +65,12 @@ userRouter.get("/user/connections", async (req, res) => {
 
     const connections = connectionsData.map((row) =>
       row.fromUserId._id.toString() === loggedInUserId // Will not give "property _id not exist on objectId" because i had already provided in the connectionReqSchema's type(IConnectionReq) as fromUserId and toUserId can be of IUserSafe type object also.
-        ? row.toUserId
-        : row.fromUserId
+        ? {_id:row._id, connectedAt: row.updatedAt, connectedUser: row.toUserId}
+        : {_id:row._id, connectedAt: row.updatedAt, connectedUser: row.fromUserId}
     );
 
     return res.status(200).json({
-      message: "Fecthed all connections successfully",
+      message: "Fecthed all your connections successfully",
       connections,
     });
   } catch (error) {

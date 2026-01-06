@@ -1,12 +1,12 @@
 // Typescript is not supported while using require.
-import mongoose, { Schema, Types, model } from "mongoose";
+import mongoose, { Schema, Types, model, Document } from "mongoose";
 
 export interface IUserSafe {
   _id: Types.ObjectId;
   firstName: string;
   lastName: string;
   age?: number;
-  gender?: string;
+  gender?: "male" | "female" | "other";
   photoUrl: string;
   about?: string;
   skills?: string[];
@@ -18,10 +18,12 @@ export interface IUserSafe {
 }
 
 // 1. Create an interface representing a document in MongoDB.
-export interface IConnectionReq {
+export interface IConnectionReq extends Document {
   fromUserId: Types.ObjectId | IUserSafe;
   toUserId: Types.ObjectId | IUserSafe;
   status: "interested" | "ignored" | "accepted" | "rejected";
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // 2. Create a Schema corresponding to the document interface.

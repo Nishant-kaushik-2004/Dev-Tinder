@@ -13,7 +13,7 @@ export interface IUser {
   photoUrl: string;
   about?: string;
   skills?: string[];
-  location: string;
+  location?: string;
   jobTitle?: string;
   company?: string;
   experience?: number;
@@ -97,6 +97,7 @@ const userScehma = new Schema<IUser>(
     },
     isFresher: {
       type: Boolean,
+      default: false,
     },
     jobTitle: {
       type: String,
@@ -114,7 +115,7 @@ const userScehma = new Schema<IUser>(
     },
     profileViews: {
       type: Number,
-      required: true,
+      default: 0,
     },
   },
   { timestamps: true }

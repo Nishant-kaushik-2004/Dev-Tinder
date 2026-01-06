@@ -1,9 +1,15 @@
 import { Calendar } from "lucide-react";
+import { IConnection } from "../../utils/types";
+
+interface ConnectionCardProps {
+  connection: IConnection;
+  onClick: (userId: string) => void;
+}
 
 // ConnectionCard Component
-const ConnectionCard = ({ connection, onClick }) => {
-  const { connectedUser, createdAt } = connection;
-  const timeSince = getTimeSinceConnection(createdAt);
+const ConnectionCard = ({ connection, onClick }: ConnectionCardProps) => {
+  const { connectedUser, connectedAt } = connection;
+  const timeSince = getTimeSinceConnection(connectedAt);
 
   return (
     <div
@@ -20,8 +26,9 @@ const ConnectionCard = ({ connection, onClick }) => {
                 alt={`${connectedUser.firstName} ${connectedUser.lastName}`}
                 className="object-cover"
                 onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = `https://ui-avatars.com/api/?name=${connectedUser.firstName}+${connectedUser.lastName}&background=random`;
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = `https://ui-avatars.com/api/?name=${connectedUser.firstName}+${connectedUser.lastName}&background=random`;
                 }}
               />
             </div>
@@ -33,7 +40,7 @@ const ConnectionCard = ({ connection, onClick }) => {
               {connectedUser.firstName} {connectedUser.lastName}
             </h3>
             <p className="text-sm text-base-content/70 line-clamp-2">
-              {connectedUser.about}
+              {connectedUser.about || "No bio available."}
             </p>
             <div className="flex items-center mt-2">
               <Calendar className="w-4 h-4 text-base-content/50 mr-1" />
@@ -63,10 +70,10 @@ const ConnectionCard = ({ connection, onClick }) => {
 };
 
 // Utility function to format time since connection
-const getTimeSinceConnection = (dateString) => {
+const getTimeSinceConnection = (dateString: string) => {
   const connectionDate = new Date(dateString);
   const now = new Date();
-  const diffInMs = now - connectionDate;
+  const diffInMs = now.getTime() - connectionDate.getTime();
 
   const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
   const hours = Math.floor(diffInMs / (1000 * 60 * 60));

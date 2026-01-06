@@ -7,6 +7,16 @@ export interface userInfo {
   about: string;
 }
 
+export interface IUser extends userInfo {
+  gender?: "male" | "female" | "other" | "";
+  skills?: string[];
+  location?: string;
+  jobTitle?: string;
+  company?: string;
+  experience?: number;
+  isFresher?: boolean;
+}
+
 export interface Chat {
   chatId: string;
   participantInfo: userInfo;
@@ -31,3 +41,9 @@ export type ReceivedMessage = {
   senderInfo: userInfo;
   chat: { chatId: string; participants: string[] };
 };
+
+export interface IConnection {
+  _id: string;
+  connectedAt: string;
+  connectedUser: IUser;
+}

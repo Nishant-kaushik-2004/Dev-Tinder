@@ -1,22 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-export interface IUser {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  age?: number;
-  gender?: "male" | "female" | "other" | "";
-  photoUrl: string;
-  about: string;
-  skills?: string[];
-  location?: string;
-  jobTitle?: string;
-  company?: string;
-  experience?: number;
-  isFresher?: boolean;
-  profileViews?: number;
-}
+import { IUser } from "../utils/types";
 
 const initialState: IUser = {
   _id: "",

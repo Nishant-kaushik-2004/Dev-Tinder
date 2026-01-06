@@ -12,7 +12,6 @@ import axios from "axios";
 import MatchesPage from "./components/matched-profiles/connections";
 import MatchRequests from "./components/match-request/matchRequests";
 import UserProfilePage from "./components/user-profile/userProfilePage";
-import Chat from "./components/chat-page/chat";
 import MessagesPage from "./components/messages/messagesPage";
 import ChatWindow from "./components/messages/chatWindow";
 import ChatWindowFallback from "./components/messages/chatWindowFallback";

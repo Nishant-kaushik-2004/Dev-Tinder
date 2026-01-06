@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { GitPullRequestDraft, Sparkles } from "lucide-react";
 import { mockRequestsData } from "../../data/mockConnections";
 import { useNavigate } from "react-router";
-import RequestCardSkeleton from "./skeletonLoader";
+import RequestCardSkeleton from "./RequestCardSkeleton";
 import EmptyState from "./EmptyState";
 import RequestCard from "./RequestCard";
 

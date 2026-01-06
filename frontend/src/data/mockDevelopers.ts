@@ -3,6 +3,7 @@ export const DEVELOPER_SKILLS = [
   "JavaScript",
   "TypeScript",
   "React",
+  "Next.js",
   "Vue.js",
   "Angular",
   "Node.js",

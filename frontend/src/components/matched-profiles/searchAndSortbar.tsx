@@ -1,12 +1,19 @@
 import { ArrowUpDown, Search } from "lucide-react";
 
 // SearchAndSortBar Component
+interface SearchAndSortBarProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  sortOrder: "newest" | "oldest";
+  onSortChange: (value: "newest" | "oldest") => void;
+}
+
 const SearchAndSortBar = ({
   searchTerm,
   onSearchChange,
   sortOrder,
   onSortChange,
-}) => (
+}: SearchAndSortBarProps) => (
   <div className="flex flex-col sm:flex-row gap-4 mb-6">
     {/* Search Input */}
     <div className="relative flex-1">
@@ -30,10 +37,20 @@ const SearchAndSortBar = ({
         className="dropdown-content menu p-2 shadow bg-base-100 rounded-box min-w-32 absolute right-0"
       >
         <li>
-          <button onClick={() => onSortChange("newest")}>Newest</button>
+          <button
+            onClick={() => onSortChange("newest")}
+            className={`text-center btn-sm btn ${sortOrder === "newest" ? " btn-primary" : ""}`}
+          >
+            Newest
+          </button>
         </li>
         <li>
-          <button onClick={() => onSortChange("oldest")}>Oldest</button>
+          <button
+            onClick={() => onSortChange("oldest")}
+            className={`text-center btn-sm btn ${sortOrder === "oldest" ? " btn-primary" : ""}`}
+          >
+            Oldest
+          </button>
         </li>
       </ul>
     </div>
