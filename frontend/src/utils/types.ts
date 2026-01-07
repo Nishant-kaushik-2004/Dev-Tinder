@@ -47,3 +47,26 @@ export interface IConnection {
   connectedAt: string;
   connectedUser: IUser;
 }
+
+export interface IRequest {
+  _id: string;
+  fromUser: IUser;
+  toUserId: string;
+  status: "interested" | "ignored" | "accepted" | "rejected";
+  createdAt: string;
+  updatedAt: string;
+}
+export interface IMatchRequestResponse {
+  message: string;
+  requests: IRequest[];
+}
+
+export interface IConnectionResponse {
+  message: string;
+  connections: IConnection[];
+}
+
+export interface IReviewRequestResponse {
+  message: string;
+  connRequest: IRequest;
+}

@@ -25,18 +25,37 @@ userRouter.get("/user/requests/received", async (req, res) => {
     if (!loggedInUserId)
       return res.status(401).json({
         message:
-          "You are Unauthorised, Please login first to see received requests!",
+          "You are Unauthorised, Please login first to see received match requests!",
       });
 
     const requests = await ConnectionReqModel.find({
       toUserId: loggedInUserId,
       status: "interested",
-    }).populate("fromUserId", USER_SAFE_DATA); // Specifying what fields the populated document should have. if not specified then it would have all fields present.
-    // }).populate("fromUserId", ["firstName", "lastName"]);  // Both are correct ways.
+    })
+      .populate("fromUserId", USER_SAFE_DATA)
+      .lean(); // important;
+    // 4️⃣ Best practice for READ-only APIs
+
+    // Use .lean() when:
+    // 	•	Fetching lists (feeds, chats, requests)
+    // 	•	Returning data to frontend
+    // 	•	No .save() needed
+
+    // ❌ Don’t use .lean() when:
+    // 	•	You want to update the document later
+    // 	•	You need .save() or middleware
+
+    const formattedRequests = requests.map((req) => {
+      const { fromUserId, ...rest } = req;
+      return {
+        ...rest,
+        fromUser: fromUserId, // rename here
+      };
+    });
 
     return res.status(200).json({
       message: "Fecthed all pending connection requests successfully",
-      requests,
+      requests: formattedRequests,
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -60,13 +79,23 @@ userRouter.get("/user/connections", async (req, res) => {
     const connectionsData = await ConnectionReqModel.find({
       status: "accepted",
       $or: [{ fromUserId: loggedInUserId }, { toUserId: loggedInUserId }],
-    }).populate(["fromUserId", "toUserId"], USER_SAFE_DATA); // Specifying what fields the populated document should have. if not specified then it would have all fields present.
+    })
+      .populate(["fromUserId", "toUserId"], USER_SAFE_DATA)
+      .lean(); // Specifying what fields the populated document should have. if not specified then it would have all fields present.
     // }).populate("fromUserId", ["firstName", "lastName"]);  // Both are correct ways.
 
     const connections = connectionsData.map((row) =>
       row.fromUserId._id.toString() === loggedInUserId // Will not give "property _id not exist on objectId" because i had already provided in the connectionReqSchema's type(IConnectionReq) as fromUserId and toUserId can be of IUserSafe type object also.
-        ? {_id:row._id, connectedAt: row.updatedAt, connectedUser: row.toUserId}
-        : {_id:row._id, connectedAt: row.updatedAt, connectedUser: row.fromUserId}
+        ? {
+            _id: row._id,
+            connectedAt: row.updatedAt,
+            connectedUser: row.toUserId,
+          }
+        : {
+            _id: row._id,
+            connectedAt: row.updatedAt,
+            connectedUser: row.fromUserId,
+          }
     );
 
     return res.status(200).json({
@@ -97,7 +126,9 @@ userRouter.get("/user/feed", async (req, res) => {
     // All connections where loggedIn user is involved(either send or received).
     const connRequests = await ConnectionReqModel.find({
       $or: [{ fromUserId: loggedInUserId }, { toUserId: loggedInUserId }],
-    }).select("fromUserId toUserId");
+    })
+      .select("fromUserId toUserId")
+      .lean();
 
     // User's with whom loggedInUser is already interacted.
     const hiddenUsers = new Set();
@@ -115,7 +146,8 @@ userRouter.get("/user/feed", async (req, res) => {
     })
       .select(USER_SAFE_DATA)
       .skip(skip)
-      .limit(limit); // if we pass 0 in skip or limit then it will ignore skip or limit  and do not do any filtering or limiting respectively.
+      .limit(limit) // if we pass 0 in skip or limit then it will ignore skip or limit and do not do any filtering or limiting respectively.
+      .lean();
 
     return res.status(200).json({
       message: "Feed fecthed successfully",

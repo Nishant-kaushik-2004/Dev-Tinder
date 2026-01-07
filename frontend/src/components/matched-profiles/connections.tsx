@@ -7,7 +7,7 @@ import {
   SearchAndSortBarSkeleton,
 } from "./matchesLoadingState";
 import SearchAndSortBar from "./searchAndSortbar";
-import { IConnection } from "../../utils/types";
+import { IConnection, IConnectionResponse } from "../../utils/types";
 import axios from "axios";
 
 // Main MatchesPage Component
@@ -19,15 +19,12 @@ const MatchesPage = () => {
 
   const navigate = useNavigate();
   console.log(sortOrder);
-  // Simulate API call to fetch connections
+
   useEffect(() => {
     const fetchConnections = async () => {
       setIsLoading(true);
       try {
-        // Simulate API delay
-        // await new Promise((resolve) => setTimeout(resolve, 300));
-
-        const res = await axios.get(
+        const res = await axios.get<IConnectionResponse>(
           `${import.meta.env.VITE_BACKEND_URL}/user/connections`,
           { withCredentials: true }
         );

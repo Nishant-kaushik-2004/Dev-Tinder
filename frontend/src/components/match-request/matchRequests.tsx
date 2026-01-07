@@ -5,79 +5,91 @@ import { useNavigate } from "react-router";
 import RequestCardSkeleton from "./RequestCardSkeleton";
 import EmptyState from "./EmptyState";
 import RequestCard from "./RequestCard";
+import axios from "axios";
+import {
+  IMatchRequestResponse,
+  IRequest,
+  IReviewRequestResponse,
+} from "../../utils/types";
 
 const MatchRequests = () => {
-  const [requests, setRequests] = useState([]);
+  const [requests, setRequests] = useState<IRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState(new Set());
 
   const navigate = useNavigate();
 
-  // Simulate API call to fetch requests
   useEffect(() => {
     const fetchRequests = async () => {
       setIsLoading(true);
+      try {
+        const res = await axios.get<IMatchRequestResponse>(
+          `${import.meta.env.VITE_BACKEND_URL}/user/requests/received`,
+          { withCredentials: true }
+        );
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      // In real app:
-      // const response = await axios.get('/user/requests/received');
-      // setRequests(response.data.requests);
-
-      setRequests(mockRequestsData.requests);
-      setIsLoading(false);
+        if (!res.data.requests) throw new Error("No match requests data found");
+        setRequests(res.data.requests);
+      } catch (error) {
+        console.error("Error fetching match requests:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchRequests();
   }, []);
 
-  // Handle accept request
-  const handleAcceptRequest = async (requestId) => {
+  // Handle Accept/Reject request
+  const handleRequest = async (
+    requestId: string,
+    requestStatus: "accepted" | "rejected"
+  ) => {
     setProcessingIds((prev) => new Set([...prev, requestId]));
 
-    try {
-      // Optimistic update
-      setRequests((prev) => prev.filter((req) => req._id !== requestId));
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // In real app:
-      // await axios.post(`/user/requests/${requestId}/accept`);
-
-      console.log("Request accepted:", requestId);
-    } catch (error) {
-      console.error("Error accepting request:", error);
-      // Revert optimistic update on error
-      // You might want to refetch data or show error message
-    } finally {
+    const currRequest = requests.find((req) => req._id === requestId);
+    if (!currRequest) {
+      console.error("Request not found:", requestId);
       setProcessingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(requestId);
         return newSet;
       });
+      return;
     }
-  };
 
-  // Handle reject request
-  const handleRejectRequest = async (requestId) => {
-    setProcessingIds((prev) => new Set([...prev, requestId]));
+    const requestAction =
+      requestStatus === "accepted" ? "Accepting" : "Rejecting";
 
     try {
       // Optimistic update
       setRequests((prev) => prev.filter((req) => req._id !== requestId));
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const res = await axios.patch<IReviewRequestResponse>(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/request/review/${requestStatus}/${requestId}`,
+        {},
+        { withCredentials: true }
+      ); // What it does
+      // 	•	Updates an existing request’s status
+      // 	•	Partial update (only status changes)
 
-      // In real app:
-      // await axios.post(`/user/requests/${requestId}/reject`);
+      // ✅ Best HTTP method: PATCH
+      // Why
+      // 	•	We are modifying part of an existing resource
+      // 	•	PATCH is ideal for status transitions
 
-      console.log("Request rejected:", requestId);
+      if (!res.data.connRequest)
+        throw new Error("No updated connection request data found");
+
+      console.log(`Request ${requestAction}:`, res.data.connRequest);
     } catch (error) {
-      console.error("Error rejecting request:", error);
+      console.error(`Error ${requestAction.toLowerCase()} request:`, error);
       // Revert optimistic update on error
+      setRequests((prev) => [...prev, currRequest]);
+      // We might want to refetch data or show error message
     } finally {
       setProcessingIds((prev) => {
         const newSet = new Set(prev);

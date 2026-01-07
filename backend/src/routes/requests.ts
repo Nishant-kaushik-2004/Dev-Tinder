@@ -118,12 +118,12 @@ requestRouter.post("/request/review/:status/:requestId", async (req, res) => {
     if (!connRequest || connRequest.status !== "interested")
       return res
         .status(404)
-        .json({ message: `No connection request has been sent` });
+        .json({ message: `No match request has been sent` });
 
     // loggedIn user should be toUserId
     if (connRequest.toUserId.toString() !== toUserId.toString()) {
       throw new Error(
-        `Connection request with requestId:${requestId} is not sent to you`
+        `This match request is not sent to you`
       );
     }
 
@@ -144,11 +144,10 @@ requestRouter.post("/request/review/:status/:requestId", async (req, res) => {
     // }
 
     // No need to create new connections request document, just change the status from interested to accepted or rejected.
-
     await connRequest.save();
 
     res.status(200).json({
-      message: `Connection request ${status}`,
+      message: `Match request ${status}`,
       connRequest,
     });
   } catch (error) {
