@@ -18,7 +18,6 @@ const MatchesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
-  console.log(sortOrder);
 
   useEffect(() => {
     const fetchConnections = async () => {

@@ -255,12 +255,10 @@ userRouter.get("/user/:userId", async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID" });
     }
 
-    const user = await User.findById(userId).select(
-      "_id firstName lastName email photoUrl about"
-    );
+    const user = await User.findById(userId).select("-password"); // Exclude password field
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User details not found" });
     }
 
     return res.status(200).json({

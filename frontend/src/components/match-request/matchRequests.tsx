@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { GitPullRequestDraft, Sparkles } from "lucide-react";
-import { mockRequestsData } from "../../data/mockConnections";
 import { useNavigate } from "react-router";
 import RequestCardSkeleton from "./RequestCardSkeleton";
 import EmptyState from "./EmptyState";
@@ -66,25 +65,27 @@ const MatchRequests = () => {
       setRequests((prev) => prev.filter((req) => req._id !== requestId));
 
       // Simulate API call
-      const res = await axios.patch<IReviewRequestResponse>(
-        `${
-          import.meta.env.VITE_BACKEND_URL
-        }/request/review/${requestStatus}/${requestId}`,
-        {},
-        { withCredentials: true }
-      ); // What it does
-      // 	•	Updates an existing request’s status
-      // 	•	Partial update (only status changes)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log(currRequest);
+      // const res = await axios.patch<IReviewRequestResponse>(
+      //   `${
+      //     import.meta.env.VITE_BACKEND_URL
+      //   }/request/review/${requestStatus}/${requestId}`,
+      //   {},
+      //   { withCredentials: true }
+      // ); // What it does
+      // // 	•	Updates an existing request’s status
+      // // 	•	Partial update (only status changes)
 
-      // ✅ Best HTTP method: PATCH
-      // Why
-      // 	•	We are modifying part of an existing resource
-      // 	•	PATCH is ideal for status transitions
+      // // ✅ Best HTTP method: PATCH
+      // // Why
+      // // 	•	We are modifying part of an existing resource
+      // // 	•	PATCH is ideal for status transitions
 
-      if (!res.data.connRequest)
-        throw new Error("No updated connection request data found");
+      // if (!res.data.connRequest)
+      //   throw new Error("No updated connection request data found");
 
-      console.log(`Request ${requestAction}:`, res.data.connRequest);
+      // console.log(`Request ${requestAction}:`, res.data.connRequest);
     } catch (error) {
       console.error(`Error ${requestAction.toLowerCase()} request:`, error);
       // Revert optimistic update on error
@@ -175,8 +176,7 @@ const MatchRequests = () => {
               >
                 <RequestCard
                   request={request}
-                  onAccept={handleAcceptRequest}
-                  onReject={handleRejectRequest}
+                  handleRequest={handleRequest}
                   isProcessing={processingIds.has(request._id)}
                 />
               </div>
@@ -186,7 +186,7 @@ const MatchRequests = () => {
       </div>
 
       {/* Custom CSS for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes fade-in-up {
           from {
             opacity: 0;

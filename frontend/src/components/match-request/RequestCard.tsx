@@ -1,17 +1,24 @@
 import { useState } from "react";
 import { Check, X, Heart } from "lucide-react";
+import { IRequest } from "../../utils/types";
+
+interface RequestCardProps {
+  request: IRequest;
+  handleRequest: (id: string, status: "accepted" | "rejected") => Promise<void>;
+  isProcessing: boolean;
+}
 
 // Request Card Component
-const RequestCard = ({ request, onAccept, onReject, isProcessing }) => {
-  const { fromUserId: user } = request;
+const RequestCard = ({
+  request,
+  handleRequest,
+  isProcessing,
+}: RequestCardProps) => {
+  const { fromUser: user } = request;
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleAccept = async () => {
-    await onAccept(request._id);
-  };
-
-  const handleReject = async () => {
-    await onReject(request._id);
+  const handleAcceptOrReject = async (status: "accepted" | "rejected") => {
+    await handleRequest(request._id, status);
   };
 
   return (
@@ -32,8 +39,9 @@ const RequestCard = ({ request, onAccept, onReject, isProcessing }) => {
                   src={user.photoUrl}
                   alt={`${user.firstName} ${user.lastName}`}
                   onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff&size=80`;
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=6366f1&color=fff&size=80`;
                   }}
                 />
               </div>
@@ -57,12 +65,12 @@ const RequestCard = ({ request, onAccept, onReject, isProcessing }) => {
 
           {/* Skills */}
           <div className="flex flex-wrap gap-2 justify-center max-w-full">
-            {user.skills.slice(0, 4).map((skill, index) => (
+            {user.skills?.slice(0, 4).map((skill, index) => (
               <div key={index} className="badge badge-primary badge-outline">
                 {skill}
               </div>
             ))}
-            {user.skills.length > 4 && (
+            {user.skills && user.skills.length > 4 && (
               <div className="badge badge-neutral">
                 +{user.skills.length - 4}
               </div>
@@ -72,7 +80,7 @@ const RequestCard = ({ request, onAccept, onReject, isProcessing }) => {
           {/* Action Buttons */}
           <div className="flex space-x-3 w-full pt-2">
             <button
-              onClick={handleReject}
+              onClick={() => handleAcceptOrReject("rejected")}
               disabled={isProcessing}
               className="btn btn-outline flex-1 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label={`Reject ${user.firstName}'s request`}
@@ -82,7 +90,7 @@ const RequestCard = ({ request, onAccept, onReject, isProcessing }) => {
             </button>
 
             <button
-              onClick={handleAccept}
+              onClick={() => handleAcceptOrReject("accepted")}
               disabled={isProcessing}
               className="btn btn-primary flex-1 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label={`Accept ${user.firstName}'s request`}

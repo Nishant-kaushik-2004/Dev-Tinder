@@ -70,3 +70,8 @@ export interface IReviewRequestResponse {
   message: string;
   connRequest: IRequest;
 }
+
+export interface IFetchProfileResponse {
+  message: string;
+  user: IUser;
+}

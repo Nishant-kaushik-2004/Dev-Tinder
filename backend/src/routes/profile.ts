@@ -22,7 +22,7 @@ profileRouter.get("/profile/view", async (req, res) => {
     const user = await User.findById(loggedInUserId).lean().select("-password");
 
     if (!user) {
-      return res.status(404).json({ message: "No user found" });
+      return res.status(404).json({ message: "No Profile details found" });
     }
 
     return res

@@ -7,25 +7,26 @@ import {
   Briefcase,
   Star,
 } from "lucide-react";
-import ProfileImageModal from "./ProfileImageModal";
-import SkeletonLoader from "./SkeletonLoader";
+import ProfileImageModal from "./profileImageModal";
+import SkeletonLoader from "./skeletonLoader";
 import ConnectionSection from "./connectionSection";
-import {  useSelector } from "react-redux";
-import { useSearchParams } from "react-router";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router";
+import { RootState } from "../../store/store";
+import { IFetchProfileResponse, IUser } from "../../utils/types";
+import axios from "axios";
 
 const UserProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [profileData, setProfileData] = useState(null);
+  const [profileData, setProfileData] = useState<IUser | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
 
-  const [searchParams] = useSearchParams();
-
-  const userId = searchParams.get("userId");
+  const { userId } = useParams();
   console.log(userId);
 
-  const user = useSelector((state) => state.user);
+  const loggedInUser = useSelector((state: RootState) => state.loggedInUser);
 
-  const loggedInUserId = user.id; // Mock current user ID
+  const loggedInUserId = loggedInUser._id;
 
   // Mock profile data - replace with actual API call
   const mockProfileData = {
@@ -56,29 +57,29 @@ const UserProfilePage = () => {
   };
 
   useEffect(() => {
-    // Simulate API call
+    if (!userId) {
+      setProfileData(loggedInUser);
+      return;
+    }
     const fetchProfile = async () => {
       setIsLoading(true);
-
       try {
-        // const response = await axios.get(
-        //   `${import.meta.env.VITE_BACKEND_URL}/profileDetails?userId=${userId}`,
-        //   { withCredentials: true }
-        // );
+        const res = await axios.get<IFetchProfileResponse>(
+          `${import.meta.env.VITE_BACKEND_URL}/user/${userId}`,
+          { withCredentials: true }
+        );
 
-        // if (response.status == 200) {
-        //   console.log(response.data.profileDetails);
-        //   dispatch(addProfileDetails(response.data.profileDetails));
-        // }
+        if (!res.data.user) {
+          throw new Error("No User details found");
+        }
 
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        console.log(res.data.user);
+        setProfileData(res.data.user);
 
         // Check if viewing own profile
-        let profileData = { ...mockProfileData };
-        if (profileData.id === loggedInUserId) {
-          profileData.connectionStatus = "own_profile";
-        }
+        // if (profileData?._id === loggedInUserId) {
+        //   profileData.connectionStatus = "own_profile";
+        // }
       } catch (error) {
         console.log(error.response?.data);
         const errorMessage = error.response?.data || "No User found";
@@ -92,7 +93,7 @@ const UserProfilePage = () => {
 
     fetchProfile();
     console.log("useEffect runs");
-  }, [loggedInUserId,userId]);
+  }, [loggedInUserId, userId]);
 
   const handleConnectionAction = async (action, userId) => {
     console.log(`${action} for user ${userId}`);
