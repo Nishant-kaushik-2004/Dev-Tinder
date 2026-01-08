@@ -40,7 +40,7 @@ const MatchRequests = () => {
     fetchRequests();
   }, []);
 
-  // Handle Accept/Reject request
+  // Handle Accept/Reject request.
   const handleRequest = async (
     requestId: string,
     requestStatus: "accepted" | "rejected"
