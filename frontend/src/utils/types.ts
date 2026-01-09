@@ -1,25 +1,38 @@
-export interface userInfo {
+export interface IUser {
   _id: string;
   firstName: string;
   lastName: string;
   email: string;
   photoUrl: string;
   about: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface IUser extends userInfo {
-  gender?: "male" | "female" | "other" | "";
+export type genderType = "male" | "female" | "other" | "";
+export type connectionStatusType =
+  | "connected"
+  | "not_connected"
+  | "pending_sent"
+  | "pending_received"
+  | "own_profile";
+
+export interface IUserInfo extends IUser {
+  age?: number;
+  gender?: genderType;
   skills?: string[];
   location?: string;
   jobTitle?: string;
   company?: string;
   experience?: number;
   isFresher?: boolean;
+  mutualConnections?: number;
+  connectionStatus?: connectionStatusType;
 }
 
 export interface Chat {
   chatId: string;
-  participantInfo: userInfo;
+  participantInfo: IUser[];
   lastMessage: string;
   timestamp: string;
   unreadCount: number;
@@ -38,21 +51,23 @@ export type MessageType = {
 
 export type ReceivedMessage = {
   messagePayload: MessageType;
-  senderInfo: userInfo;
+  senderInfo: IUser;
   chat: { chatId: string; participants: string[] };
 };
 
 export interface IConnection {
   _id: string;
   connectedAt: string;
-  connectedUser: IUser;
+  connectedUser: IUserInfo;
 }
+
+type statusType = "interested" | "ignored" | "accepted" | "rejected";
 
 export interface IRequest {
   _id: string;
-  fromUser: IUser;
+  fromUser: IUserInfo;
   toUserId: string;
-  status: "interested" | "ignored" | "accepted" | "rejected";
+  status: statusType;
   createdAt: string;
   updatedAt: string;
 }
@@ -73,5 +88,5 @@ export interface IReviewRequestResponse {
 
 export interface IFetchProfileResponse {
   message: string;
-  user: IUser;
+  user: IUserInfo;
 }

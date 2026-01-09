@@ -17,7 +17,7 @@ const userRouter = express.Router();
 const USER_SAFE_DATA =
   "firstName lastName photoUrl age gender about skills location isFresher experience company jobTitle";
 
-// Get all the pending connections of the loggedIn user.
+// Get all the pending connections of the loggedIn user. (status interested)
 userRouter.get("/user/requests/received", async (req, res) => {
   try {
     const loggedInUserId = req.user;
@@ -66,6 +66,7 @@ userRouter.get("/user/requests/received", async (req, res) => {
   }
 });
 
+// Get all connections of the loggedIn user. (status accepted)
 userRouter.get("/user/connections", async (req, res) => {
   try {
     const loggedInUserId = req.user;
@@ -80,23 +81,21 @@ userRouter.get("/user/connections", async (req, res) => {
       status: "accepted",
       $or: [{ fromUserId: loggedInUserId }, { toUserId: loggedInUserId }],
     })
+      .sort({ updatedAt: -1 })
       .populate(["fromUserId", "toUserId"], USER_SAFE_DATA)
       .lean(); // Specifying what fields the populated document should have. if not specified then it would have all fields present.
     // }).populate("fromUserId", ["firstName", "lastName"]);  // Both are correct ways.
 
-    const connections = connectionsData.map((row) =>
-      row.fromUserId._id.toString() === loggedInUserId // Will not give "property _id not exist on objectId" because i had already provided in the connectionReqSchema's type(IConnectionReq) as fromUserId and toUserId can be of IUserSafe type object also.
-        ? {
-            _id: row._id,
-            connectedAt: row.updatedAt,
-            connectedUser: row.toUserId,
-          }
-        : {
-            _id: row._id,
-            connectedAt: row.updatedAt,
-            connectedUser: row.fromUserId,
-          }
-    );
+    const connections = connectionsData.map((row) => {
+      return {
+        _id: row._id,
+        connectedAt: row.updatedAt,
+        connectedUser:
+          row.fromUserId._id.toString() === loggedInUserId
+            ? row.toUserId
+            : row.fromUserId, // Will not give "property _id not exist on objectId" because i had already provided in the connectionReqSchema's type(IConnectionReq) as fromUserId and toUserId can be of IUserSafe type object also.
+      };
+    });
 
     return res.status(200).json({
       message: "Fecthed all your connections successfully",
@@ -111,6 +110,7 @@ userRouter.get("/user/connections", async (req, res) => {
   }
 });
 
+// Get feed for logged in user. (All users except already interacted ones)
 userRouter.get("/user/feed", async (req, res) => {
   try {
     const loggedInUserId = req.user;
@@ -162,6 +162,7 @@ userRouter.get("/user/feed", async (req, res) => {
   }
 });
 
+// Search users among connections with whom chat doesn't exist (to start new chat with them)
 userRouter.get("/users/search", async (req, res) => {
   try {
     const loggedInUserId = req.user;
@@ -247,6 +248,7 @@ userRouter.get("/users/search", async (req, res) => {
   }
 });
 
+// Get any user by userId
 userRouter.get("/user/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
