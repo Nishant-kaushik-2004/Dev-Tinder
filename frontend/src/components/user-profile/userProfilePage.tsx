@@ -1,25 +1,20 @@
 import { useState, useEffect } from "react";
-import {
-  Edit,
-  MessageCircle,
-  MapPin,
-  Calendar,
-  Briefcase,
-  Star,
-} from "lucide-react";
+import { MessageCircle, MapPin, Calendar, Briefcase, Star } from "lucide-react";
 import ProfileImageModal from "./profileImageModal";
 import SkeletonLoader from "./skeletonLoader";
 import ConnectionSection from "./connectionSection";
 import { useSelector } from "react-redux";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { RootState } from "../../store/store";
-import { IFetchProfileResponse, IUserInfo } from "../../utils/types";
+import { IFetchProfileResponse, IUserProfile } from "../../utils/types";
 import axios, { AxiosError } from "axios";
 import formatTimestamp from "../../helper/formatTimeStamp";
 
+export type ConnectionActionType = "send" | "accept" | "cancel" | "reject";
+
 const UserProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [profileData, setProfileData] = useState<IUserInfo | null>(null);
+  const [profileData, setProfileData] = useState<IUserProfile | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
 
   const navigate = useNavigate();
@@ -29,7 +24,6 @@ const UserProfilePage = () => {
 
   const loggedInUserId = loggedInUser._id;
 
-  // Mock profile data - replace with actual API call
   // const mockProfileData = {
   //   id: "user-456",
   //   firstName: "Sarah",
@@ -92,30 +86,59 @@ const UserProfilePage = () => {
     };
 
     fetchProfile();
-    console.log("useEffect runs");
   }, [loggedInUserId, userId]);
 
-  // const handleConnectionAction = async (action, userId) => {
-  //   console.log(`${action} for user ${userId}`);
+  const handleConnectionAction = async (
+    action: ConnectionActionType,
+    userId: string
+  ) => {
+    console.log(`${action} for user ${userId}`);
 
-  //   // Simulate API call
-  //   await new Promise((resolve) => setTimeout(resolve, 500));
+    let apiEndpoint = "";
+    if (action === "send") {
+      apiEndpoint = `/request/send/${userId}`;
+    } else if (action === "accept") {
+      apiEndpoint = `/request/review/accepted/${userId}`;
+    } else if (action === "cancel") {
+      apiEndpoint = `/request/cancel/${userId}`;
+    } else if (action === "reject") {
+      apiEndpoint = `/request/review/rejected/${userId}`;
+    }
 
-  //   // Update connection status based on action
-  //   setProfileData((prev) => ({
-  //     ...prev,
-  //     connectionStatus:
-  //       action === "send"
-  //         ? "pending_sent"
-  //         : action === "accept"
-  //         ? "connected"
-  //         : action === "cancel"
-  //         ? "not_connected"
-  //         : action === "reject"
-  //         ? "not_connected"
-  //         : prev.connectionStatus,
-  //   }));
-  // };
+    try {
+      // Simulate API call
+      // await new Promise((resolve) => setTimeout(resolve, 500));
+      const res = await axios.patch(
+        `${import.meta.env.VITE_BACKEND_URL}${apiEndpoint}`,
+        {},
+        { withCredentials: true }
+      );
+      // Change review api route to accept /:toUserId instead of requestId in params
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      console.log(axiosError);
+      const errorMessage = axiosError.response?.data || "No User found";
+      console.log(errorMessage);
+    }
+
+    // Update connection status based on action
+    setProfileData((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        connectionStatus:
+          action === "send"
+            ? "pending_sent"
+            : action === "accept"
+            ? "connected"
+            : action === "cancel"
+            ? "not_connected"
+            : action === "reject"
+            ? "not_connected"
+            : prev.connectionStatus,
+      };
+    });
+  };
 
   const handleEditProfile = () => {
     console.log("Redirect to edit profile page");
@@ -254,7 +277,7 @@ const UserProfilePage = () => {
                 <h2 className="card-title text-2xl mb-4">Activity</h2>
                 <div className="flex items-center gap-2 text-base-content/70">
                   <div className="w-3 h-3 rounded-full bg-success animate-pulse"></div>
-                  <span>Last active {"Not available"}</span>
+                  <span>Last active: {"N/A"}</span>
                 </div>
 
                 {profileData.mutualConnections &&
@@ -274,8 +297,8 @@ const UserProfilePage = () => {
           <div className="space-y-4">
             {/* Connection Status */}
             <ConnectionSection
-              connectionStatus={profileData.connectionStatus}
-              // onAction={handleConnectionAction}
+              connectionStatus={profileData.connectionStatus!}
+              onAction={handleConnectionAction}
               userId={profileData._id}
               onEditProfile={handleEditProfile}
             />
@@ -311,13 +334,15 @@ const UserProfilePage = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-base-content/70">Skills</span>
                     <span className="font-semibold">
-                      {profileData.skills?.length}
+                      {profileData.skills?.length || 0}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-base-content/70">Experience</span>
                     <span className="font-semibold">
-                      {profileData.experience}
+                      {profileData.experience
+                        ? `${profileData.experience} years`
+                        : "N/A"}
                     </span>
                   </div>
                   {profileData.mutualConnections &&

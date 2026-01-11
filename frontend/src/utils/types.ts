@@ -10,12 +10,6 @@ export interface IUser {
 }
 
 export type genderType = "male" | "female" | "other" | "";
-export type connectionStatusType =
-  | "connected"
-  | "not_connected"
-  | "pending_sent"
-  | "pending_received"
-  | "own_profile";
 
 export interface IUserInfo extends IUser {
   age?: number;
@@ -26,8 +20,19 @@ export interface IUserInfo extends IUser {
   company?: string;
   experience?: number;
   isFresher?: boolean;
-  mutualConnections?: number;
-  connectionStatus?: connectionStatusType;
+}
+
+export type connectionStatusType =
+  | "connected"
+  | "not_connected"
+  | "pending_sent"
+  | "pending_received"
+  | "own_profile";
+
+// For user profile page
+export interface IUserProfile extends IUserInfo {
+  mutualConnections: number;
+  connectionStatus: connectionStatusType;
 }
 
 export interface Chat {
@@ -88,5 +93,5 @@ export interface IReviewRequestResponse {
 
 export interface IFetchProfileResponse {
   message: string;
-  user: IUserInfo;
+  user: IUserProfile;
 }

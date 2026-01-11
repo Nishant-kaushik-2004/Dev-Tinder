@@ -6,7 +6,7 @@ import { Outlet, useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { addNewChat, setChats } from "../../store/chatsSlice";
 import axios from "axios";
-import { Chat, userInfo } from "../../utils/types";
+import { Chat, IUser } from "../../utils/types";
 import { RootState } from "../../store/store";
 import getSocket from "../../utils/socket";
 
@@ -19,7 +19,6 @@ const MessagesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const socketRef = useRef(getSocket());
 
-  
   const navigate = useNavigate(); // To navigate programmatically between chats
   const dispatch = useDispatch(); // To update chats inside chatSlice in redux store
 
@@ -38,7 +37,8 @@ const MessagesPage = () => {
       selectedChat = chats.find((chat) => chat.chatId === chatId);
     } else if (userId) {
       selectedChat = chats.find((chat) => chat.participantInfo._id == userId);
-      if (selectedChat) { // If chat already exists with this user, navigate to that chatId
+      if (selectedChat) {
+        // If chat already exists with this user, navigate to that chatId
         navigate(`/messages/${selectedChat.chatId}`, { replace: true });
       }
     }
@@ -108,21 +108,33 @@ const MessagesPage = () => {
     }; // 1️⃣ When targetUserId or loggedInUser._id changes, 2️⃣ When the component unmounts, 3️⃣ Before re-running the effect if dependencies change.
   }, [loggedInUser._id, targetUserId]);
 
-  // Handle resize
+  // handleResize is NOT called on mount ❌
+  // This effect only runs on resize, not on initial render.
+  // That means:
+  // • If the page loads on mobile with /messages/:chatId already open
+  // • Sidebar may be incorrectly visible until the user resizes the window
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
-      if (window.innerWidth >= 1024) {
+      const isMobileView = window.innerWidth < 1024;
+      setIsMobile(isMobileView);
+
+      if (!isMobileView) {
+        setShowSidebar(true);
+      } else if (chatId || userId) {
+        setShowSidebar(false);
+      } else {
         setShowSidebar(true);
       }
     };
+    // To fix this issue run handleResize once on mount
+    handleResize(); // ✅ run once on mount
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [chatId, userId]);
 
   const handleChatSelect = useCallback(
-    (chat?: Chat, newUser?: userInfo) => {
+    (chat?: Chat, newUser?: IUser) => {
       // setActiveChat(chat);
       if (isMobile) {
         setShowSidebar(false);

@@ -16,12 +16,19 @@ const userAuth = (req, res, next) => {
       throw new Error("Invalid token payload");
     }
 
+    if (!decodedObject.loggedInUserId)
+      return res.status(401).json({
+        message: "You are Unauthorised, Please login first!",
+      });
+
     req.user = decodedObject.loggedInUserId;
 
     next();
   } catch (error) {
     console.error("Invalid JSON string:", error);
-    return res.status(400).json({ ERROR: "Invalid Token!" });
+    return res
+      .status(400)
+      .json({ message: "ERROR: " + "Invalid Token! Please login again." });
   }
 };
 

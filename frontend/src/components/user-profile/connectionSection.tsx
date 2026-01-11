@@ -1,16 +1,30 @@
-import { Check, X, UserPlus, Edit, Clock, Users } from 'lucide-react';
+import { Check, X, UserPlus, Edit, Clock, Users } from "lucide-react";
+import { connectionStatusType } from "../../utils/types";
+import { ConnectionActionType } from "./userProfilePage";
 
-const ConnectionSection = ({ connectionStatus, onAction, userId, onEditProfile }) => {
+interface ConnectionSectionProps {
+  connectionStatus: connectionStatusType;
+  onAction: (action: ConnectionActionType, userId: string) => Promise<void>;
+  userId: string;
+  onEditProfile: () => void;
+}
+
+const ConnectionSection = ({
+  connectionStatus,
+  onAction,
+  userId,
+  onEditProfile,
+}: ConnectionSectionProps) => {
   const renderConnectionContent = () => {
     switch (connectionStatus) {
-      case 'own_profile':
+      case "own_profile":
         return (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-info">
               <Edit size={16} />
               <span className="font-medium">This is your profile</span>
             </div>
-            <button 
+            <button
               className="btn btn-primary w-full gap-2"
               onClick={onEditProfile}
             >
@@ -20,7 +34,7 @@ const ConnectionSection = ({ connectionStatus, onAction, userId, onEditProfile }
           </div>
         );
 
-      case 'connected':
+      case "connected":
         return (
           <div className="space-y-4">
             <div className="alert alert-success">
@@ -28,21 +42,22 @@ const ConnectionSection = ({ connectionStatus, onAction, userId, onEditProfile }
               <span className="font-medium">You are connected</span>
             </div>
             <div className="text-sm text-base-content/70 text-center">
-              You can now message each other and see detailed profiles
+              You can now message each other
+              {/* and see detailed profiles */}
             </div>
           </div>
         );
 
-      case 'pending_sent':
+      case "pending_sent":
         return (
           <div className="space-y-4">
             <div className="alert alert-warning">
               <Clock size={16} />
               <span className="font-medium">Request Pending</span>
             </div>
-            <button 
+            <button
               className="btn btn-outline btn-error w-full gap-2 btn-sm"
-              onClick={() => onAction('cancel', userId)}
+              onClick={() => onAction("cancel", userId)}
             >
               <X size={16} />
               Cancel Request
@@ -53,7 +68,7 @@ const ConnectionSection = ({ connectionStatus, onAction, userId, onEditProfile }
           </div>
         );
 
-      case 'pending_received':
+      case "pending_received":
         return (
           <div className="space-y-4">
             <div className="alert alert-info">
@@ -61,16 +76,16 @@ const ConnectionSection = ({ connectionStatus, onAction, userId, onEditProfile }
               <span className="font-medium">Wants to connect</span>
             </div>
             <div className="flex gap-2">
-              <button 
+              <button
                 className="btn btn-success flex-1 gap-2"
-                onClick={() => onAction('accept', userId)}
+                onClick={() => onAction("accept", userId)}
               >
                 <Check size={16} />
                 Accept
               </button>
-              <button 
+              <button
                 className="btn btn-outline btn-error flex-1 gap-2"
-                onClick={() => onAction('reject', userId)}
+                onClick={() => onAction("reject", userId)}
               >
                 <X size={16} />
                 Reject
@@ -82,19 +97,20 @@ const ConnectionSection = ({ connectionStatus, onAction, userId, onEditProfile }
           </div>
         );
 
-      case 'not_connected':
+      case "not_connected":
       default:
         return (
           <div className="space-y-4">
-            <button 
+            <button
               className="btn btn-primary w-full gap-2"
-              onClick={() => onAction('send', userId)}
+              onClick={() => onAction("send", userId)}
             >
               <UserPlus size={16} />
               Send Connection Request
             </button>
             <div className="text-xs text-base-content/60 text-center">
-              Connect to unlock messaging and detailed profile access
+              Connect to unlock messaging
+              {/* and detailed profile access */}
             </div>
           </div>
         );

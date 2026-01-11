@@ -77,7 +77,7 @@ const MatchesPage = () => {
   const handleConnectionClick = (userId: string) => {
     console.log("Navigate to profile:", userId);
     // In real app: navigate(`/profile/${userId}`);
-    navigate(`/user?user=${userId}`);
+    navigate(`/user/${userId}`);
   };
 
   // if (isLoading) {

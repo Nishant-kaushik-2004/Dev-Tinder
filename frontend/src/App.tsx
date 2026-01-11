@@ -12,9 +12,9 @@ import axios from "axios";
 import MatchesPage from "./components/matched-profiles/connections";
 import MatchRequests from "./components/match-request/matchRequests";
 import UserProfilePage from "./components/user-profile/userProfilePage";
-import MessagesPage from "./components/messages/messagesPage";
-import ChatWindow from "./components/messages/chatWindow";
-import ChatWindowFallback from "./components/messages/chatWindowFallback";
+import MessagesPage from "./components/messages-page/messagesPage";
+import ChatWindow from "./components/messages-page/chatWindow";
+import ChatWindowFallback from "./components/messages-page/chatWindowFallback";
 
 const App = () => {
   // Initialize theme from localStorage
