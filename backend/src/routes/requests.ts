@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 
 const requestRouter = express.Router();
 
-// Extend Express Request type to include 'user'
+// Extend Express Request type to include 'user'.
 declare global {
   namespace Express {
     interface Request {
