@@ -66,7 +66,7 @@ export interface IConnection {
   connectedUser: IUserInfo;
 }
 
-type statusType = "interested" | "ignored" | "accepted" | "rejected";
+export type statusType = "interested" | "ignored" | "accepted" | "rejected";
 
 export interface IRequest {
   _id: string;
@@ -90,6 +90,8 @@ export interface IReviewRequestResponse {
   message: string;
   connRequest: IRequest;
 }
+
+export type ConnectionActionType = "send" | "accept" | "cancel" | "reject";
 
 export interface IFetchProfileResponse {
   message: string;

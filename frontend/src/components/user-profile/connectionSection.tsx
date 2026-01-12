@@ -1,6 +1,5 @@
 import { Check, X, UserPlus, Edit, Clock, Users } from "lucide-react";
-import { connectionStatusType } from "../../utils/types";
-import { ConnectionActionType } from "./userProfilePage";
+import { ConnectionActionType, connectionStatusType } from "../../utils/types";
 
 interface ConnectionSectionProps {
   connectionStatus: connectionStatusType;

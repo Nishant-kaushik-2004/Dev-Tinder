@@ -4,13 +4,17 @@ import ProfileImageModal from "./profileImageModal";
 import SkeletonLoader from "./skeletonLoader";
 import ConnectionSection from "./connectionSection";
 import { useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { RootState } from "../../store/store";
-import { IFetchProfileResponse, IUserProfile } from "../../utils/types";
+import {
+  ConnectionActionType,
+  connectionStatusType,
+  IFetchProfileResponse,
+  IUserProfile,
+  statusType,
+} from "../../utils/types";
 import axios, { AxiosError } from "axios";
 import formatTimestamp from "../../helper/formatTimeStamp";
-
-export type ConnectionActionType = "send" | "accept" | "cancel" | "reject";
 
 const UserProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +23,9 @@ const UserProfilePage = () => {
 
   const navigate = useNavigate();
   const { userId } = useParams();
+  const { pathname } = useLocation();
+
+  const isOwnProfile = pathname === "/profile" || pathname === "/profile/";
 
   const loggedInUser = useSelector((state: RootState) => state.loggedInUser);
 
@@ -52,15 +59,21 @@ const UserProfilePage = () => {
   // };
 
   useEffect(() => {
-    if (!userId) {
-      setProfileData(loggedInUser);
+    if (!userId && !isOwnProfile) return;
+
+    // 🔁 If user is trying to view their own profile via /user/:id
+    if (userId === loggedInUserId) {
+      navigate("/profile", { replace: true });
       return;
     }
+
     const fetchProfile = async () => {
       setIsLoading(true);
       try {
         const res = await axios.get<IFetchProfileResponse>(
-          `${import.meta.env.VITE_BACKEND_URL}/profile/view/${userId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/profile/view/${
+            isOwnProfile ? loggedInUserId : userId
+          }`,
           { withCredentials: true }
         );
 
@@ -70,11 +83,6 @@ const UserProfilePage = () => {
 
         console.log(res.data.user);
         setProfileData(res.data.user);
-
-        // Check if viewing own profile
-        // if (profileData?._id === loggedInUserId) {
-        //   profileData.connectionStatus = "own_profile";
-        // }
       } catch (error) {
         const axiosError = error as AxiosError;
         console.log(axiosError);
@@ -86,63 +94,101 @@ const UserProfilePage = () => {
     };
 
     fetchProfile();
-  }, [loggedInUserId, userId]);
+  }, [loggedInUserId, userId, isOwnProfile, navigate]);
+
+  const ACTION_CONFIG: Record<
+    ConnectionActionType,
+    {
+      method: "post" | "patch" | "delete";
+      endpoint: (userId: string) => string;
+      status?: statusType;
+    }
+  > = {
+    send: {
+      method: "post",
+      endpoint: (userId) => `/request/send/${userId}`,
+      status: "interested",
+    },
+    accept: {
+      method: "patch",
+      endpoint: (userId) => `/requests/review/${userId}`,
+      status: "accepted",
+    },
+    reject: {
+      method: "patch",
+      endpoint: (userId) => `/requests/review/${userId}`,
+      status: "rejected",
+    },
+    cancel: {
+      method: "delete",
+      endpoint: (userId) => `/requests/cancel/${userId}`,
+    },
+  };
+
+  const optimisticStatusMap: Record<
+    ConnectionActionType,
+    connectionStatusType
+  > = {
+    send: "pending_sent",
+    accept: "connected",
+    reject: "not_connected",
+    cancel: "not_connected",
+  };
 
   const handleConnectionAction = async (
     action: ConnectionActionType,
     userId: string
   ) => {
-    console.log(`${action} for user ${userId}`);
+    if (!profileData) return;
 
-    let apiEndpoint = "";
-    if (action === "send") {
-      apiEndpoint = `/request/send/${userId}`;
-    } else if (action === "accept") {
-      apiEndpoint = `/request/review/accepted/${userId}`;
-    } else if (action === "cancel") {
-      apiEndpoint = `/request/cancel/${userId}`;
-    } else if (action === "reject") {
-      apiEndpoint = `/request/review/rejected/${userId}`;
-    }
+    const previousStatus = profileData.connectionStatus;
+
+    // 🔹 Optimistic UI update
+    setProfileData((prev) =>
+      prev
+        ? {
+            ...prev,
+            connectionStatus: optimisticStatusMap[action],
+          }
+        : prev
+    );
+
+    const { method, endpoint } = ACTION_CONFIG[action];
 
     try {
-      // Simulate API call
-      // await new Promise((resolve) => setTimeout(resolve, 500));
-      const res = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}${apiEndpoint}`,
-        {},
-        { withCredentials: true }
-      );
-      // Change review api route to accept /:toUserId instead of requestId in params
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      console.log(axiosError);
-      const errorMessage = axiosError.response?.data || "No User found";
-      console.log(errorMessage);
-    }
+      const res = await axios({
+        method,
+        url: `${import.meta.env.VITE_BACKEND_URL}${endpoint(userId)}`,
+        data: { status: ACTION_CONFIG[action].status },
+        withCredentials: true,
+      });
 
-    // Update connection status based on action
-    setProfileData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        connectionStatus:
-          action === "send"
-            ? "pending_sent"
-            : action === "accept"
-            ? "connected"
-            : action === "cancel"
-            ? "not_connected"
-            : action === "reject"
-            ? "not_connected"
-            : prev.connectionStatus,
-      };
-    });
+      console.log(res.data);
+    } catch (error) {
+      // 🔻 Rollback on failure
+      setProfileData((prev) =>
+        prev
+          ? {
+              ...prev,
+              connectionStatus: previousStatus,
+            }
+          : prev
+      );
+
+      const axiosError = error as AxiosError<{ message?: string }>;
+      console.error(
+        "Connection action failed:",
+        axiosError.response?.data?.message || axiosError.message
+      );
+
+      // toast / alert
+      // toast.error("Something went wrong. Please try again.");
+    }
   };
 
   const handleEditProfile = () => {
     console.log("Redirect to edit profile page");
-    navigate("/profile");
+    navigate("/profile/edit");
   };
 
   const handleMessage = () => {
@@ -247,50 +293,59 @@ const UserProfilePage = () => {
               <div className="card-body">
                 <h2 className="card-title text-2xl mb-4">About</h2>
                 <p className="text-base-content/80 leading-relaxed">
-                  {profileData.about}
+                  {profileData.about.length > 0
+                    ? profileData.about
+                    : "This user hasn’t added an about yet."}
                 </p>
               </div>
             </div>
 
             {/* Skills Section */}
-            <div className="card bg-base-100 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title text-2xl mb-4">
-                  Skills & Technologies
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {profileData.skills?.map((skill, index) => (
-                    <div
-                      key={index}
-                      className="badge badge-primary badge-lg p-3 font-medium hover:badge-accent transition-colors cursor-default"
-                    >
-                      {skill}
-                    </div>
-                  ))}
+            {profileData.skills && profileData.skills.length > 0 && (
+              <div className="card bg-base-100 shadow-xl">
+                <div className="card-body">
+                  <h2 className="card-title text-2xl mb-4">
+                    Skills & Technologies
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {profileData.skills?.map((skill, index) => (
+                      <div
+                        key={index}
+                        className="badge badge-primary badge-lg p-3 font-medium hover:badge-accent transition-colors cursor-default"
+                      >
+                        {skill}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Activity Section */}
-            <div className="card bg-base-100 shadow-xl">
-              <div className="card-body">
-                <h2 className="card-title text-2xl mb-4">Activity</h2>
-                <div className="flex items-center gap-2 text-base-content/70">
+            {typeof profileData.mutualConnections === "number" && (
+              <div className="card bg-base-100 shadow-xl">
+                <div className="card-body">
+                  <h2 className="card-title text-2xl mb-4">Activity</h2>
+                  {/* {profileData.lastActive &&  (<div className="flex items-center gap-2 text-base-content/70">
                   <div className="w-3 h-3 rounded-full bg-success animate-pulse"></div>
                   <span>Last active: {"N/A"}</span>
-                </div>
+                </div>)} */}
 
-                {profileData.mutualConnections &&
-                  profileData.mutualConnections > 0 && (
-                    <div className="mt-3 flex items-center gap-2 text-base-content/70">
-                      <span className="font-medium text-primary">
-                        {profileData.mutualConnections}
-                      </span>
-                      <span>mutual connections</span>
-                    </div>
-                  )}
+                  <div className="mt-3 flex items-center gap-2 text-base-content/70">
+                    {profileData.mutualConnections === 0 ? (
+                      <span>No mutual connections yet</span>
+                    ) : (
+                      <>
+                        <span>Mutual connections:</span>
+                        <span className="font-medium text-primary">
+                          {profileData.mutualConnections}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Right Column - Actions */}
@@ -319,43 +374,54 @@ const UserProfilePage = () => {
 
                   {profileData.connectionStatus !== "connected" && (
                     <div className="text-xs text-base-content/60 text-center">
-                      Connect to send messages
+                      {profileData.connectionStatus !== "own_profile"
+                        ? `Connect with ${profileData.firstName} to enable messaging`
+                        : "Cannot message yourself"}
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Quick Stats */}
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
                 <h3 className="card-title text-lg mb-4">Profile Stats</h3>
-                <div className="space-y-3">
+
+                <div className="space-y-3 text-sm">
+                  {/* Skills */}
                   <div className="flex justify-between items-center">
                     <span className="text-base-content/70">Skills</span>
-                    <span className="font-semibold">
-                      {profileData.skills?.length || 0}
+                    <span className="font-medium">
+                      {Array.isArray(profileData.skills) &&
+                      profileData.skills.length > 0
+                        ? profileData.skills.length
+                        : "—"}
                     </span>
                   </div>
+
+                  {/* Experience */}
                   <div className="flex justify-between items-center">
                     <span className="text-base-content/70">Experience</span>
-                    <span className="font-semibold">
-                      {profileData.experience
-                        ? `${profileData.experience} years`
-                        : "N/A"}
+                    <span className="font-medium">
+                      {typeof profileData.experience === "number"
+                        ? `${profileData.experience} ${
+                            profileData.experience === 1 ? "year" : "years"
+                          }`
+                        : "—"}
                     </span>
                   </div>
-                  {profileData.mutualConnections &&
-                    profileData.mutualConnections > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-base-content/70">
-                          Mutual Connections
-                        </span>
-                        <span className="font-semibold">
-                          {profileData.mutualConnections}
-                        </span>
-                      </div>
-                    )}
+
+                  {/* Mutual Connections */}
+                  {typeof profileData.mutualConnections === "number" && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-base-content/70">
+                        Mutual Connections
+                      </span>
+                      <span className="font-medium text-primary">
+                        {profileData.mutualConnections}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

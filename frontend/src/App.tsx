@@ -56,10 +56,11 @@ const App = () => {
           {/* Layout route */}
           <Route element={<Body />}>
             <Route index element={<Feed />} /> {/* Home route */}
-            <Route path="profile" element={<EditProfile />} />
+            <Route path="profile" element={<UserProfilePage />} />
+            <Route path="profile/edit" element={<EditProfile />} />
+            <Route path="user/:userId" element={<UserProfilePage />} />
             <Route path="connections" element={<MatchesPage />} />
             <Route path="requests" element={<MatchRequests />} />
-            <Route path="user/:userId" element={<UserProfilePage />} />
             {/* <Route path="chat" element={<Chat />} /> */}
           </Route>
 

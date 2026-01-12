@@ -19,6 +19,7 @@ export interface IUser {
   experience?: number;
   isFresher: boolean;
   profileViews: number;
+  profileViewers: Schema.Types.ObjectId[];
 }
 
 // 2. Create a Schema corresponding to the document interface.
@@ -39,6 +40,11 @@ const userScehma = new Schema<IUser>(
     lastName: {
       type: String,
       required: true,
+      index: true,
+      minlength: [
+        3,
+        `lastName should be minimum three characters long, got only {VALUE}.`,
+      ],
       maxlength: [30, "lastName should be under 30 letters"],
       trim: true,
     },
@@ -46,9 +52,8 @@ const userScehma = new Schema<IUser>(
       type: String,
       required: true,
       unique: [true, "A user has already registered with this emailId"],
-      // index: true,
-      // Unique index. If you specify 'unique: true'
-      // specifying 'index: true' is optional if you do unique:true
+      index: true,
+      // specifying 'index: true' is optional if you do unique:true , as it automatically creates an index.
       lowercase: true,
       trim: true,
       validate: {
@@ -61,6 +66,7 @@ const userScehma = new Schema<IUser>(
     password: {
       type: String,
       required: true,
+      select: false, // 🔐 security best practice
     },
     age: {
       type: Number,
@@ -85,15 +91,20 @@ const userScehma = new Schema<IUser>(
     },
     about: {
       type: String,
-      default: "This is a default about of the user",
-      maxlength: [1000, "About section content should not exceed 1000 letters"],
+      default: "",
+      maxlength: [
+        1000,
+        "About section content should not exceed 1000 characters",
+      ],
       trim: true,
     },
     skills: {
       type: [String],
+      index: true,
     },
     location: {
       type: String,
+      index: true,
     },
     isFresher: {
       type: Boolean,
@@ -111,12 +122,21 @@ const userScehma = new Schema<IUser>(
     },
     experience: {
       type: Number,
+      min: 0,
       max: 20,
+      default: 0,
     },
     profileViews: {
       type: Number,
       default: 0,
     },
+    profileViewers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        select: false, // very important
+      },
+    ],
   },
   { timestamps: true }
 );
