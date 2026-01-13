@@ -6,3 +6,11 @@ Otherwise make it fetch only for routes other than login and signup.
 3. Not handling unreadCount for different chats as of now, later should need to fix it everywhere.
 
 4. TODO after 1 jan 2025 -> Need to fix new chat addition at the reciever side when a user messages for the 1st time (currently not showing a new chat in the sidebar until refresh)
+
+Do make this base URL configuration once and then define only paths in every api call.
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_BACKEND_URL,
+  withCredentials: true,
+});
+
+Do same reusability practices in Backend including making a reusable try catch (with catch code already written in standard way) to refrain from defining it for every API.

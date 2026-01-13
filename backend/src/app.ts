@@ -2,7 +2,6 @@
 import dotenv from "dotenv";
 dotenv.config(); // MUST be first
 import express from "express";
-import { User } from "./models/userModel.js";
 import connectDb from "./config/db.js";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.js";
@@ -13,7 +12,8 @@ import userAuth from "./middleware/auth.js";
 import cors from "cors";
 import { createServer } from "node:http";
 import InitializeSocket from "./utils/socket.js";
-import chatRouter  from "./routes/chats.js";
+import chatRouter from "./routes/chats.js";
+import feedRouter from "./routes/feed.js";
 
 const app = express();
 const server = createServer(app);
@@ -40,6 +40,7 @@ app.use(cookieParser()); // works as middleware for every route as it parses the
 app.use(
   authRouter,
   userAuth,
+  feedRouter,
   profileRouter,
   requestRouter,
   userRouter,
@@ -61,15 +62,3 @@ connectDb()
       err
     );
   });
-// app.use("/", (req, res, next) => {
-//   // res.json("trying...");
-//   next();
-// });
-
-// app.post("/insertuser", async (req, res, next) => {
-//   console.log(req.body);
-//   const newUser = new User(req.body);
-//   await newUser.save();
-//   console.log("user saved successfully in the database");
-//   res.status(201).json(req.body);
-// });

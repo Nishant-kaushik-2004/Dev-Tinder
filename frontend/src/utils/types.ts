@@ -97,3 +97,23 @@ export interface IFetchProfileResponse {
   message: string;
   user: IUserProfile;
 }
+
+export interface FeedStats {
+  views: {
+    totalViews: number;
+    newViewsToday: number;
+  };
+  matches: {
+    totalMatches: number;
+    newMatchesThisWeek: number;
+  };
+  messages: {
+    totalMessages: number;
+    newMessagesThisWeek: number;
+  };
+}
+
+export interface IFetchFeedStatsResponse {
+  message: string;
+  stats: FeedStats;
+}

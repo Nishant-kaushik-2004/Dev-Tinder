@@ -1,18 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, MessageCircle, Users, Filter } from "lucide-react";
 import { developers } from "../../data/mockDevelopers";
 import QuickActions from "./quickActions";
 import DeveloperCard from "./developerCard";
 import FiltersPanel from "./filtersPanel";
 import SwipeControls from "./swipeControl";
+import { FeedStats, IFetchFeedStatsResponse } from "../../utils/types";
+import axios, { AxiosError } from "axios";
 
 // Main devTinder App Component
 const Feed = () => {
   const [currentDeveloper, setCurrentDeveloper] = useState(0);
+  const [stats, setStats] = useState<FeedStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({});
 
-  const handleSwipe = (direction) => {
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setIsLoading(true);
+      try {
+        const res = await axios.get<IFetchFeedStatsResponse>(
+          `${import.meta.env.VITE_BACKEND_URL}/feed/stats`,
+          { withCredentials: true }
+        );
+
+        console.log(res.data.stats);
+        setStats(res.data.stats);
+      } catch (error) {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        console.error(
+          "Fetching feed stats failed:",
+          axiosError.response?.data?.message || axiosError.message
+        );
+
+        // toast / alert
+        // toast.error("Something went wrong. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleSwipe = (direction: "left" | "right"): void => {
     console.log(
       `Swiped ${direction} on ${developers[currentDeveloper].firstName} ${developers[currentDeveloper].lastName}`
     );
@@ -44,8 +76,12 @@ const Feed = () => {
                   <h2 className="card-title text-base-content/60 text-sm font-medium">
                     Total Matches
                   </h2>
-                  <p className="text-3xl font-bold text-primary">42</p>
-                  <p className="text-sm text-success">↗︎ 8 new this week</p>
+                  <p className="text-3xl font-bold text-primary">
+                    {stats?.matches.totalMatches}
+                  </p>
+                  <p className="text-sm text-success">
+                    ↗︎ {stats?.matches.newMatchesThisWeek} new this week
+                  </p>
                 </div>
                 <div className="text-primary">
                   <Users className="w-8 h-8" />
@@ -61,8 +97,12 @@ const Feed = () => {
                   <h2 className="card-title text-base-content/60 text-sm font-medium">
                     Messages
                   </h2>
-                  <p className="text-3xl font-bold text-secondary">15</p>
-                  <p className="text-sm text-success">↗︎ 3 unread</p>
+                  <p className="text-3xl font-bold text-secondary">
+                    {stats?.messages.totalMessages}
+                  </p>
+                  <p className="text-sm text-success">
+                    ↗︎ {stats?.messages.newMessagesThisWeek} new this week
+                  </p>
                 </div>
                 <div className="text-secondary">
                   <MessageCircle className="w-8 h-8" />
@@ -78,8 +118,12 @@ const Feed = () => {
                   <h2 className="card-title text-base-content/60 text-sm font-medium">
                     Profile Views
                   </h2>
-                  <p className="text-3xl font-bold text-accent">128</p>
-                  <p className="text-sm text-success">↗︎ 12 today</p>
+                  <p className="text-3xl font-bold text-accent">
+                    {stats?.views.totalViews}
+                  </p>
+                  <p className="text-sm text-success">
+                    ↗︎ {stats?.views.newViewsToday} today
+                  </p>
                 </div>
                 <div className="text-accent">
                   <Heart className="w-8 h-8" />

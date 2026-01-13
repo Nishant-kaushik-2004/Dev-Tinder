@@ -23,12 +23,17 @@ profileRouter.get("/profile/view/:userId?", async (req, res) => {
 
     const { userId } = req.params;
 
+    if (!loggedInUserId || !mongoose.Types.ObjectId.isValid(loggedInUserId)) {
+      return res.status(400).json({
+        message:
+          "You're not logged in or invalid User ID, Please log in again.",
+      });
+    }
+
     let connectionStatus = "own_profile";
 
     if (!userId || userId === loggedInUserId) {
-      const loggedInUserProfile = await User.findById(loggedInUserId)
-        .lean()
-        .select("-password");
+      const loggedInUserProfile = await User.findById(loggedInUserId).lean();
 
       if (!loggedInUserProfile) {
         return res.status(404).json({ message: "No Profile details found" });
@@ -49,7 +54,25 @@ profileRouter.get("/profile/view/:userId?", async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID" });
     }
 
-    const userProfile = await User.findById(userId).select("-password").lean();
+    const today = new Date().toDateString();
+
+    await User.updateOne(
+      {
+        _id: userId, // profile owner
+        [`lastViewedBy.${loggedInUserId}`]: { $ne: today }, // not viewed today
+        $expr: { $ne: ["$_id", loggedInUserId] }, // prevent self-view
+        // $expr tells MongoDB: Evaluate this expression using document fields at runtime
+      },
+      {
+        $inc: { profileViews: 1 },
+        $set: { [`lastViewedBy.${loggedInUserId}`]: today },
+        $addToSet: { profileViewers: loggedInUserId },
+      }
+    );
+
+    const userProfile = await User.findById(userId).lean();
+    // When used .lean()
+    // You can modify the object in memory, but MongoDB will NOT be updated as it bypasses Mongoose document methods and gives you plain JavaScript objects.
 
     if (!userProfile) {
       return res.status(404).json({ message: "No Profile details found" });

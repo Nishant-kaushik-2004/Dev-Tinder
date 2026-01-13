@@ -20,6 +20,7 @@ export interface IUser {
   isFresher: boolean;
   profileViews: number;
   profileViewers: Schema.Types.ObjectId[];
+  lastViewedBy?: Map<string, string>;
 }
 
 // 2. Create a Schema corresponding to the document interface.
@@ -137,6 +138,14 @@ const userScehma = new Schema<IUser>(
         select: false, // very important
       },
     ],
+    lastViewedBy: {
+      type: Map,
+      of: String, // "Wed Sep 04 2025" (Date string)
+      select: false,
+    },
+    //   Mongoose: MongoDB has no native Map type
+    // •	Converts JS Map → MongoDB object on save
+    // •	Converts MongoDB object → JS Map on read
   },
   { timestamps: true }
 );
