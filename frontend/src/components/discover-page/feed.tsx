@@ -1,23 +1,82 @@
 import { useEffect, useState } from "react";
 import { Heart, MessageCircle, Users, Filter } from "lucide-react";
-import { developers } from "../../data/mockDevelopers";
 import QuickActions from "./quickActions";
 import DeveloperCard from "./developerCard";
 import FiltersPanel from "./filtersPanel";
 import SwipeControls from "./swipeControl";
-import { FeedStats, IFetchFeedStatsResponse } from "../../utils/types";
+import {
+  FeedStats,
+  IFetchDevelopersResponse,
+  IFetchFeedStatsResponse,
+  IUserInfo,
+} from "../../utils/types";
 import axios, { AxiosError } from "axios";
+import { useNavigate } from "react-router";
+
+export interface IFilter {
+  experienceLevel?: string;
+  technologies?: string[];
+  location?: string;
+}
 
 // Main devTinder App Component
 const Feed = () => {
   const [currentDeveloper, setCurrentDeveloper] = useState(0);
+  const [developers, setDevelopers] = useState<IUserInfo[] | null>(null);
   const [stats, setStats] = useState<FeedStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({});
+  const [draftFilters, setDraftFilters] = useState<IFilter>({});
+  const [appliedFilters, setAppliedFilters] = useState<IFilter>({});
+  const [page, setPage] = useState(1);
+
+  console.log(appliedFilters, " ", page);
+
+  const navigate = useNavigate();
+
+  // Fetch developers on component mount
+  useEffect(() => {
+    const fetchDevelopers = async () => {
+      setIsLoading(true);
+      try {
+        const res = await axios.get<IFetchDevelopersResponse>(
+          `${import.meta.env.VITE_BACKEND_URL}/feed`,
+          {
+            withCredentials: true,
+            params: {
+              page,
+              limit: 10,
+              ...appliedFilters,
+            },
+          }
+        );
+        console.log(res.data);
+
+        if (!res.data.developers) {
+          throw new Error("No developers found");
+        }
+
+        console.log(res.data.developers);
+        setDevelopers(res.data.developers || []);
+      } catch (error) {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        console.error(
+          "Fetching developers failed:",
+          axiosError.response?.data?.message || axiosError.message
+        );
+
+        // toast / alert
+        // toast.error("Something went wrong. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDevelopers();
+  }, [appliedFilters, page]);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileStats = async () => {
       setIsLoading(true);
       try {
         const res = await axios.get<IFetchFeedStatsResponse>(
@@ -41,14 +100,38 @@ const Feed = () => {
       }
     };
 
-    fetchProfile();
+    fetchProfileStats();
   }, []);
+
+  const handleApplyFilters = () => {
+    setPage(1); // reset pagination
+    setAppliedFilters(draftFilters);
+  };
+
+  const handleClearFilters = () => {
+    setDraftFilters({});
+    setAppliedFilters({});
+    setPage(1);
+  };
+
+  const handleCardClick = () => {
+    if (!developers || !developers[currentDeveloper]) return;
+    navigate(`/user/${developers[currentDeveloper]._id}`);
+  };
+
+  if (isLoading || !developers || !stats) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="loader">Loading...</div>
+      </div>
+    );
+  }
 
   const handleSwipe = (direction: "left" | "right"): void => {
     console.log(
       `Swiped ${direction} on ${developers[currentDeveloper].firstName} ${developers[currentDeveloper].lastName}`
     );
-    setCurrentDeveloper((prev) => (prev + 1) % developers.length);
+    setCurrentDeveloper((prev) => (prev + 1) % developers.length || 0);
   };
 
   return (
@@ -61,8 +144,11 @@ const Feed = () => {
       <FiltersPanel
         isOpen={showFilters}
         onClose={() => setShowFilters(false)}
-        filters={filters}
-        setFilters={setFilters}
+        draftFilters={draftFilters}
+        setDraftFilters={setDraftFilters}
+        appliedFilters={appliedFilters}
+        handleApplyFilters={handleApplyFilters}
+        handleClearFilters={handleClearFilters}
       />
 
       {/* Main Content */}
@@ -153,8 +239,8 @@ const Feed = () => {
 
         {/* Card Stack */}
         <div className="hero min-h-[500px]">
-          <div className="relative">
-            {developers.length > 0 && (
+          <div className="relative" onDoubleClick={handleCardClick}>
+            {developers?.length > 0 && (
               <DeveloperCard
                 developer={developers[currentDeveloper]}
                 onSwipe={handleSwipe}

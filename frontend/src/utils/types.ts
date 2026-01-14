@@ -117,3 +117,8 @@ export interface IFetchFeedStatsResponse {
   message: string;
   stats: FeedStats;
 }
+
+export interface IFetchDevelopersResponse {
+  message: string;
+  developers: IUserInfo[];
+}

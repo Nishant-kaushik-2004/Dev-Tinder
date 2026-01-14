@@ -1,18 +1,25 @@
 import { useState } from "react";
+import { IUserInfo } from "../../utils/types";
 
-// Developer Card Component
-const DeveloperCard = ({ developer, onSwipe }) => {
+interface DeveloperCardProps {
+  developer: IUserInfo;
+  onSwipe: (direction: "left" | "right") => void;
+}
+
+const DeveloperCard = ({ developer, onSwipe }: DeveloperCardProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
-  const [dragStart, setDragStart] = useState(null);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
+    null
+  );
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleMouseDown = (e) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setDragStart({ x: e.clientX, y: e.clientY });
     setIsDragging(true);
   };
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!dragStart || !isDragging) return;
     e.preventDefault(); // stop page from scrolling
     const offset = e.clientX - dragStart.x;
@@ -30,7 +37,7 @@ const DeveloperCard = ({ developer, onSwipe }) => {
     setIsDragging(false);
   };
 
-  const handleSwipe = (direction) => {
+  const handleSwipe = (direction: "left" | "right") => {
     setIsAnimating(true);
     setTimeout(() => {
       onSwipe(direction);
@@ -40,13 +47,13 @@ const DeveloperCard = ({ developer, onSwipe }) => {
   };
 
   // Touch events for mobile
-  const handleTouchStart = (e) => {
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
     setDragStart({ x: touch.clientX, y: touch.clientY });
     setIsDragging(true);
   };
 
-  const handleTouchMove = (e) => {
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!dragStart || !isDragging) return;
     e.preventDefault(); // stop swipe from scrolling the page
     const touch = e.touches[0];
@@ -156,7 +163,7 @@ const DeveloperCard = ({ developer, onSwipe }) => {
                   {skill}
                 </div>
               ))}
-              {developer.skills?.length > 4 && (
+              {developer.skills && developer.skills.length > 4 && (
                 <div className="badge badge-outline badge-sm text-base-100 border-base-100/50">
                   +{developer.skills.length - 4}
                 </div>

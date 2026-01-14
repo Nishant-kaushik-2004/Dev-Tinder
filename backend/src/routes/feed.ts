@@ -18,55 +18,82 @@ feedRouter.get("/feed", async (req, res) => {
       typeof loggedInUserId !== "string" ||
       !mongo.ObjectId.isValid(loggedInUserId)
     ) {
-      return res
-        .status(400)
-        .json({ message: "ERROR : Invalid logged in user id" });
+      return res.status(400).json({ message: "Invalid logged in user id" });
     }
 
-    // Pagination through backend
-    const page = parseInt(req.query.page as string) || 1;
+    /* ---------------- Pagination ---------------- */
+    const page = Math.max(parseInt(req.query.page as string) || 1, 1);
     let limit = parseInt(req.query.limit as string) || 10;
-
-    limit = Math.min(limit, 30); // Max limit is 30
+    limit = Math.min(limit, 30);
 
     const skip = (page - 1) * limit;
 
-    // All connections where loggedIn user is involved(either send or received).
+    /* ---------------- Filters ---------------- */
+    const { technologies, location, experienceLevel } = req.query;
+
+    const filterQuery: any = {};
+
+    // Normalize technologies (string | string[])
+    const techArray =
+      typeof technologies === "string"
+        ? [technologies]
+        : Array.isArray(technologies)
+        ? technologies
+        : [];
+
+    if (techArray.length) {
+      filterQuery.skills = { $in: techArray };
+    }
+
+    if (location) {
+      filterQuery.location = { $regex: location, $options: "i" };
+    }
+
+    if (experienceLevel) {
+      filterQuery.experience = experienceLevel;
+    }
+
+    /* ---------------- Hidden users logic ---------------- */
     const connRequests = await ConnectionReqModel.find({
       $or: [{ fromUserId: loggedInUserId }, { toUserId: loggedInUserId }],
     })
       .select("fromUserId toUserId")
       .lean();
 
-    // User's with whom loggedInUser is already interacted.
-    const hiddenUsers = new Set();
+    const hiddenUsers = new Set<string>();
 
     connRequests.forEach((req) => {
       hiddenUsers.add(req.fromUserId.toString());
       hiddenUsers.add(req.toUserId.toString());
-    }); // This Set will includes loggedInUserId also.
+    });
 
+    /* ---------------- Final Query ---------------- */
     const usersShownInFeed = await User.find({
-      $and: [
-        { _id: { $nin: Array.from(hiddenUsers) } },
-        { _id: { $ne: loggedInUserId } },
-      ],
+      _id: {
+        $nin: [...hiddenUsers, loggedInUserId],
+      },
+      ...filterQuery,
     })
       .select(USER_SAFE_DATA)
       .skip(skip)
-      .limit(limit) // if we pass 0 in skip or limit then it will ignore skip or limit and do not do any filtering or limiting respectively.
+      .limit(limit)
       .lean();
 
     return res.status(200).json({
-      message: "Feed fecthed successfully",
-      users: usersShownInFeed,
+      message: "Feed fetched successfully",
+      developers: usersShownInFeed,
+      pagination: {
+        page,
+        limit,
+        hasMore: usersShownInFeed.length === limit,
+      },
     });
   } catch (error) {
+    console.error(error);
     if (error instanceof Error) {
-      return res.status(400).json({ message: "ERROR : " + error.message });
-    } else {
-      return res.status(500).json({ message: "ERROR : Something went wrong" });
+      return res.status(400).json({ message: "ERROR: " + error.message });
     }
+    return res.status(500).json({ message: "ERROR: Something went wrong" });
   }
 });
 
