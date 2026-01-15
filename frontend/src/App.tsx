@@ -59,7 +59,7 @@ const App = () => {
             <Route path="profile" element={<UserProfilePage />} />
             <Route path="profile/edit" element={<EditProfile />} />
             <Route path="user/:userId" element={<UserProfilePage />} />
-            <Route path="connections" element={<MatchesPage />} />
+            <Route path="matches" element={<MatchesPage />} />
             <Route path="requests" element={<MatchRequests />} />
             {/* <Route path="chat" element={<Chat />} /> */}
           </Route>

@@ -1,7 +1,7 @@
 import { Users, Target } from "lucide-react";
 
 // Empty State Component
-const EmptyState = ({ onDiscoverClick }) => (
+const EmptyState = ({ onDiscoverClick }: { onDiscoverClick: () => void }) => (
   <div className="flex flex-col items-center justify-center py-16 px-4">
     <div className="w-32 h-32 bg-base-200 rounded-full flex items-center justify-center mb-8">
       <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center">

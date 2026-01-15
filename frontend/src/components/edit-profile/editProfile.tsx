@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sun, Moon, X, Save, User, Camera, Sparkles, Edit } from "lucide-react";
+import { X, Save, User, Camera, Edit } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import ProfileCardPreview from "./profileCardPreview";
@@ -8,19 +8,19 @@ import { DEVELOPER_SKILLS } from "../../data/mockDevelopers";
 import { setUser } from "../../store/userSlice";
 import { RootState } from "../../store/store";
 
+export interface formDataType {
+  firstName: string;
+  lastName: string;
+  age: string | number;
+  gender: "male" | "female" | "other" | "";
+  photoUrl: string;
+  about: string;
+  skills: string[];
+}
+
 const EditProfilePage = () => {
   const user = useSelector((state: RootState) => state.loggedInUser);
   const dispatch = useDispatch();
-
-  interface formDataType {
-    firstName: string;
-    lastName: string;
-    age: string | number;
-    gender: "male" | "female" | "other" | "";
-    photoUrl: string;
-    about: string;
-    skills: string[];
-  }
 
   const [formData, setFormData] = useState<formDataType>({
     firstName: "",
@@ -78,17 +78,20 @@ const EditProfilePage = () => {
     setHasChanges(hasFormChanges);
   }, [formData]);
 
-  /**
-   * Input sanitization
-   */
+  // Input sanitization
   const sanitizeInput = (input: string | number) => {
     if (typeof input !== "string") return input;
-    return input.trim().replace(/[<>]/g, "");
+    // Only remove dangerous characters, NOT whitespace
+    return input.replace(/[<>]/g, "");
   };
 
-  /**
-   * URL validation
-   */
+  // Do always when blur(focus from input leaves)
+  const normalizeText = (value: string) =>
+    value
+      .replace(/\s+/g, " ") // collapse multiple spaces into one
+      .trim(); // remove leading/trailing spaces
+
+  // URL validation
   const validateUrl = (url: string) => {
     try {
       new URL(url);
@@ -98,9 +101,7 @@ const EditProfilePage = () => {
     }
   };
 
-  /**
-   * Handle input changes with validation
-   */
+  // Handle input changes with validation at every key stroke
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -132,9 +133,36 @@ const EditProfilePage = () => {
     }
   };
 
-  /**
-   * Handle skill input
-   */
+  // Handle input blur for normalization (e.g., removing multiple spaces, trimming spaces, proper capitalization)
+  const handleInputBlur = (
+    e: React.FocusEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+
+    let cleanedValue = value;
+
+    // Remove leading/trailing spaces
+    cleanedValue = cleanedValue.trim();
+
+    // Collapse multiple spaces → single space
+    cleanedValue = cleanedValue.replace(/\s+/g, " ");
+
+    // Capitalize names properly
+    if (name === "firstName" || name === "lastName") {
+      cleanedValue =
+        cleanedValue.charAt(0).toUpperCase() +
+        cleanedValue.slice(1).toLowerCase();
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: cleanedValue,
+    }));
+  };
+
+  // Handle skill input
   const handleSkillInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ): void => {
@@ -154,9 +182,7 @@ const EditProfilePage = () => {
     }
   };
 
-  /**
-   * Add skill
-   */
+  // Add skill
   const addSkill = (skill: string): void => {
     const trimmedSkill = skill.trim();
     if (trimmedSkill && !formData.skills.includes(trimmedSkill)) {
@@ -169,9 +195,7 @@ const EditProfilePage = () => {
     setShowSkillSuggestions(false);
   };
 
-  /**
-   * Remove skill
-   */
+  // Remove skill
   const removeSkill = (skillToRemove: string): void => {
     setFormData((prev) => ({
       ...prev,
@@ -179,9 +203,7 @@ const EditProfilePage = () => {
     }));
   };
 
-  /**
-   * Handle skill input key press
-   */
+  // Handle skill input key press
   const handleSkillKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -195,10 +217,8 @@ const EditProfilePage = () => {
     }
   };
 
-  /**
-   * Form validation
-   */
   const validateForm = () => {
+    // Form validation before submission and fill errors state if any
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.firstName || formData.firstName.length < 3) {
@@ -236,9 +256,7 @@ const EditProfilePage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  /**
-   * Handle form submission
-   */
+  // Handle form submission
   const handleSubmit = async () => {
     if (!validateForm() || isLoading || !hasChanges) return;
 
@@ -289,7 +307,6 @@ const EditProfilePage = () => {
         type: "success",
       });
 
-      // In real app: dispatch(updateUser(response.data.user));
       console.log("Profile updated:", response.data);
     } catch (error) {
       const axiosError = error as any;
@@ -345,6 +362,7 @@ const EditProfilePage = () => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
+                        onBlur={handleInputBlur}
                         className={`input input-bordered w-full focus:outline-none ${
                           errors.firstName ? "input-error" : ""
                         }`}
@@ -373,6 +391,7 @@ const EditProfilePage = () => {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
+                        onBlur={handleInputBlur}
                         className={`input input-bordered w-full focus:outline-none ${
                           errors.lastName ? "input-error" : ""
                         }`}
@@ -402,6 +421,7 @@ const EditProfilePage = () => {
                         name="age"
                         value={formData.age}
                         onChange={handleInputChange}
+                        onBlur={handleInputBlur}
                         className={`input input-bordered w-full focus:outline-none ${
                           errors.age ? "input-error" : ""
                         }`}
@@ -428,6 +448,7 @@ const EditProfilePage = () => {
                         name="gender"
                         value={formData.gender}
                         onChange={handleInputChange}
+                        onBlur={handleInputBlur}
                         className={`select select-bordered w-full focus:outline-none ${
                           errors.gender ? "select-error" : ""
                         }`}
@@ -461,6 +482,7 @@ const EditProfilePage = () => {
                       name="photoUrl"
                       value={formData.photoUrl}
                       onChange={handleInputChange}
+                      onBlur={handleInputBlur}
                       className={`input input-bordered w-full focus:outline-none ${
                         errors.photoUrl ? "input-error" : ""
                       }`}
@@ -488,6 +510,7 @@ const EditProfilePage = () => {
                       name="about"
                       value={formData.about}
                       onChange={handleInputChange}
+                      onBlur={handleInputBlur}
                       className="textarea textarea-bordered h-32 resize-none w-full focus:outline-none"
                       placeholder="Tell potential matches about yourself..."
                       maxLength={500}
@@ -508,6 +531,7 @@ const EditProfilePage = () => {
                         value={skillInput}
                         onChange={handleSkillInputChange}
                         onKeyDown={handleSkillKeyPress}
+                        onBlur={handleInputBlur}
                         className="input input-bordered w-full focus:outline-none"
                         placeholder="Type a skill and press Enter"
                         disabled={isLoading}

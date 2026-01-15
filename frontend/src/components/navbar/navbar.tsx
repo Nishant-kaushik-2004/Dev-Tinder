@@ -1,15 +1,7 @@
-import { useState } from "react";
-import {
-  MessageCircle,
-  Bell,
-  Settings,
-  Code,
-  Users,
-  LucideGitPullRequestDraft,
-  LogOut,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bell, Code } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, NavLink, useLocation, useNavigate } from "react-router";
 import NotificationPanel from "./notificationPanel";
 import { notificationsList } from "../../data/mockDevelopers";
 import DropDownMenu from "./mobileNavigation";
@@ -17,6 +9,8 @@ import ThemeDropdown from "./themeDropdown";
 import ProfileDropdown from "./profileDropdown";
 import axios from "axios";
 import { clearUser } from "../../store/userSlice";
+import { RootState } from "../../store/store";
+import { menuRoutes } from "../../data/NavbarData";
 
 // Navbar Component
 const Navbar = () => {
@@ -29,34 +23,16 @@ const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // // Close dropdown whenever route changes
-  // useEffect(() => {
-  //   setOpen(false);
-  //   console.log(location);
-  // }, [location]);
+  // Close dropdown whenever route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setShowNotifications(false);
+  }, [location.pathname]);
 
-  // // Close on outside click
-  // useEffect(() => {
-  //   const onDocClick = (e) => {
-  //     if (dropdownRef.current && !dropdownRef.current.contains(e.target))
-  //       setOpen(false);
-  //   };
-  //   document.addEventListener("mousedown", onDocClick);
-  //   return () => document.removeEventListener("mousedown", onDocClick);
-  // }, []);
-
-  const loggedInUser = useSelector((state) => state.loggedInUser);
-
-  const isEditingProfile = location.pathname === "/profile";
-
-  const handleNotificationClick = () => {
-    setShowNotifications(!showNotifications);
-    // setNotifications([]);
-  };
+  const loggedInUser = useSelector((state: RootState) => state.loggedInUser);
 
   const handleLogout = async () => {
     try {
-      // In real app, this would be:
       await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/logout`,
         {},
@@ -67,7 +43,10 @@ const Navbar = () => {
       dispatch(clearUser());
       navigate("/login");
     } catch (error) {
-      console.log("ERROR: " + error.message);
+      //On logout failure, always clear local auth state.
+      dispatch(clearUser());
+      navigate("/login");
+      console.log("ERROR: " + (error as Error).message);
     }
   };
 
@@ -90,52 +69,36 @@ const Navbar = () => {
 
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1 gap-1">
-          <li>
-            <Link
-              to="/"
-              className="btn btn-ghost gap-2 text-base-content hover:text-primary hover:bg-primary/10"
-            >
-              <Code className="w-4 h-4" />
-              Discover
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/connections"
-              className="btn btn-ghost gap-2 text-base-content hover:text-primary hover:bg-primary/10"
-            >
-              <Users className="w-4 h-4" />
-              Matches
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/requests"
-              className="btn btn-ghost gap-2 text-base-content hover:text-primary hover:bg-primary/10"
-            >
-              <LucideGitPullRequestDraft className="w-4 h-4" />
-              Requests
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/messages"
-              className="btn btn-ghost gap-2 text-base-content hover:text-primary hover:bg-primary/10"
-            >
-              <MessageCircle className="w-4 h-4" />
-              Messages
-            </Link>
-          </li>
+          {menuRoutes.map((route) => (
+            <li key={route.path}>
+              {/*⭐️ Automatically applies active styles when route matches unlike in Link */}
+              <NavLink
+                to={route.path}
+                className={({ isActive }) =>
+                  `btn btn-ghost hover:text-primary hover:bg-primary/10 gap-2 ${
+                    isActive ? "text-primary bg-primary/10" : ""
+                  }`
+                }
+              >
+                <route.icon className="w-5 h-5" />
+                {route.label}
+              </NavLink>
+            </li>
+          ))}
         </ul>
       </div>
 
       <div className="navbar-end gap-5">
         <ThemeDropdown />
         {/* Notification Button with Proper Badge */}
-        <div className="indicator mt-2 mr-2">
+        <div className="indicator indicator-end">
           <button
             className="btn btn-ghost btn-circle btn-sm sm:btn-md hover:bg-base-200"
-            onClick={handleNotificationClick}
+            onClick={(e) => {
+              // Close on outside click except when clicking the button itself
+              e.stopPropagation(); // ✅ STOP bubbling
+              setShowNotifications((prev) => !prev);
+            }}
           >
             <Bell className="w-5 h-5 text-base-content" />
           </button>
@@ -154,7 +117,6 @@ const Navbar = () => {
 
         <ProfileDropdown
           user={loggedInUser}
-          isEditingProfile={isEditingProfile}
           handleLogout={handleLogout}
         />
       </div>

@@ -1,13 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { IUser } from "../utils/types";
+import { IUserInfo } from "../utils/types";
 
-const initialState: IUser = {
+const initialState: IUserInfo = {
   _id: "",
   firstName: "",
   lastName: "",
   email: "",
   photoUrl: "",
   about: "",
+  createdAt: "",
+  updatedAt: "",
 };
 
 export const userSlice = createSlice({

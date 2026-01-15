@@ -122,3 +122,9 @@ export interface IFetchDevelopersResponse {
   message: string;
   developers: IUserInfo[];
 }
+
+export interface IFilter {
+  experienceLevel?: string;
+  technologies?: string[];
+  location?: string;
+}

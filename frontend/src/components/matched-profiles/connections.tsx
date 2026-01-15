@@ -1,11 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, Heart, User, ArrowUpDown, Sparkles } from "lucide-react";
+import { Heart, User, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router";
 import ConnectionCard from "./connectionCard";
-import {
-  ConnectionsGridSkeleton,
-  SearchAndSortBarSkeleton,
-} from "./matchesLoadingState";
+import ConnectionsGridSkeleton from "./ConnectionsGridSkeleton";
+("./ConnectionsGridSkeleton");
 import SearchAndSortBar from "./searchAndSortbar";
 import { IConnection, IConnectionResponse } from "../../utils/types";
 import axios from "axios";
@@ -80,16 +78,6 @@ const MatchesPage = () => {
     navigate(`/user/${userId}`);
   };
 
-  // if (isLoading) {
-  //   return (
-  //     <MatchesLoadingState
-  //       variant="default" // or "compact"
-  //       showSearchBar={true}
-  //       cardCount={8}
-  //     />
-  //   );
-  // }
-
   return (
     <div className="container min-h-screen mx-auto px-4 py-8">
       <div className="xl:text-center mb-8">
@@ -99,47 +87,37 @@ const MatchesPage = () => {
           </div>
           <h1 className="text-3xl font-bold text-base-content">Your Matches</h1>
         </div>
-        {!isLoading && (
+        {isLoading ? (
+          <div className="flex justify-center mt-2">
+            <div className="skeleton h-5 w-64 rounded-md"></div>
+          </div>
+        ) : (
           <p className="text-lg text-base-content/70">
             {connections.length === 0
               ? "You haven't found a match yet"
               : `${connections.length} developer${
                   connections.length !== 1 ? "s" : ""
-                } 
-          you've connected with`}
+                } you've connected with`}
           </p>
         )}
       </div>
-      {/* Page Header */}
-      {/* <div className="mb-8">
-        <h1 className="text-3xl font-bold text-base-content mb-2">
-          Your Matches
-        </h1>
-        <p className="text-base-content/70">
-          {connections.length} developer{connections.length !== 1 ? "s" : ""}{" "}
-          you've connected with
-        </p>
-      </div> */}
+
+      {/* Search and Sort Controls */}
+      <SearchAndSortBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        sortOrder={sortOrder}
+        onSortChange={setSortOrder}
+      />
 
       {/* Show content only if there are connections */}
       {isLoading ? (
         <div className="mt-12">
-          {/* Search and Sort Bar Skeleton */}
-          <SearchAndSortBarSkeleton />
-
           {/* Connections Grid Skeleton */}
           <ConnectionsGridSkeleton />
         </div>
       ) : connections.length > 0 ? (
         <>
-          {/* Search and Sort Controls */}
-          <SearchAndSortBar
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            sortOrder={sortOrder}
-            onSortChange={setSortOrder}
-          />
-
           {/* Results Count */}
           {searchTerm && (
             <div className="mb-4">

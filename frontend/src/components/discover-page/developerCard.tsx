@@ -1,44 +1,94 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { IUserInfo } from "../../utils/types";
+import { useNavigate } from "react-router";
 
 interface DeveloperCardProps {
   developer: IUserInfo;
   onSwipe: (direction: "left" | "right") => void;
 }
 
+const DRAG_THRESHOLD = 8; // ✅ NEW: distinguish click vs drag
+const SWIPE_THRESHOLD = 120;
+
 const DeveloperCard = ({ developer, onSwipe }: DeveloperCardProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
-    null
-  );
   const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null); // ✅ CHANGED: useRef instead of state
+  const isDraggingRef = useRef(false); // ✅ NEW: tracks real dragging
+  const hasMovedRef = useRef(false); // ✅ NEW: blocks tap after drag
+
+  /* -------------------- Mouse Events -------------------- */
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    setDragStart({ x: e.clientX, y: e.clientY });
-    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    isDraggingRef.current = true;
+    hasMovedRef.current = false; // ✅ reset
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragStart || !isDragging) return;
-    e.preventDefault(); // stop page from scrolling
-    const offset = e.clientX - dragStart.x;
+    if (!dragStartRef.current || !isDraggingRef.current) return;
+
+    const offset = e.clientX - dragStartRef.current.x;
+
+    // ✅ NEW: detect real drag
+    if (Math.abs(offset) > DRAG_THRESHOLD) {
+      hasMovedRef.current = true;
+    }
+
     setDragOffset(offset);
   };
 
   const handleMouseUp = () => {
-    if (!isDragging) return; // ✅ Prevent multiple triggers (🚨 V.V.V.Imp oyherwise is gets swiped two or may be three times)
-    if (Math.abs(dragOffset) > 120) {
+    if (!isDraggingRef.current) return;
+
+    // If dragged enough (120px) → swipe
+    if (Math.abs(dragOffset) > SWIPE_THRESHOLD) {
       handleSwipe(dragOffset > 0 ? "right" : "left");
     } else {
       setDragOffset(0);
     }
-    setDragStart(null);
-    setIsDragging(false);
+
+    dragStartRef.current = null;
+    isDraggingRef.current = false;
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    dragStartRef.current = { x: touch.clientX, y: touch.clientY };
+    isDraggingRef.current = true;
+    hasMovedRef.current = false; // reset
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!dragStartRef.current || !isDraggingRef.current) return;
+
+    const touch = e.touches[0];
+    const offset = touch.clientX - dragStartRef.current.x;
+
+    if (Math.abs(offset) > DRAG_THRESHOLD) {
+      hasMovedRef.current = true;
+    }
+
+    setDragOffset(offset);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDraggingRef.current) return;
+
+    if (Math.abs(dragOffset) > SWIPE_THRESHOLD) {
+      handleSwipe(dragOffset > 0 ? "right" : "left");
+    } else {
+      setDragOffset(0);
+    }
+
+    dragStartRef.current = null;
+    isDraggingRef.current = false;
   };
 
   const handleSwipe = (direction: "left" | "right") => {
     setIsAnimating(true);
+
     setTimeout(() => {
       onSwipe(direction);
       setIsAnimating(false);
@@ -46,31 +96,16 @@ const DeveloperCard = ({ developer, onSwipe }: DeveloperCardProps) => {
     }, 400);
   };
 
-  // Touch events for mobile
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    setDragStart({ x: touch.clientX, y: touch.clientY });
-    setIsDragging(true);
+  const navigate = useNavigate();
+  
+  // Tap / Click Handler
+  const handleClick = () => {
+    // block click after drag
+    if (hasMovedRef.current) return;
+
+    navigate(`/user/${developer._id}`);
   };
 
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!dragStart || !isDragging) return;
-    e.preventDefault(); // stop swipe from scrolling the page
-    const touch = e.touches[0];
-    const offset = touch.clientX - dragStart.x;
-    setDragOffset(offset);
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging) return; // ✅ Prevent multiple triggers (🚨 V.V.V.Imp oyherwise is gets swiped two or may be three times)
-    if (Math.abs(dragOffset) > 120) {
-      handleSwipe(dragOffset > 0 ? "right" : "left");
-    } else {
-      setDragOffset(0);
-    }
-    setDragStart(null);
-    setIsDragging(false);
-  };
 
   const rotation = dragOffset * 0.1;
   const opacity = 1 - Math.abs(dragOffset) / 300;
@@ -98,6 +133,7 @@ const DeveloperCard = ({ developer, onSwipe }: DeveloperCardProps) => {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onClick={handleClick} // ✅ NEW: controlled click
       >
         {/* Background Image */}
         <figure className="absolute inset-0">

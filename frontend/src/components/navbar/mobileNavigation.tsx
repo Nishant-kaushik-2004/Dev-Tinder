@@ -1,13 +1,19 @@
-import { Code, MessageCircle, Users } from "lucide-react";
-import { Link } from "react-router";
+import { NavLink } from "react-router";
+import { menuRoutes } from "../../data/NavbarData";
+
+interface DropDownMenuProps {
+  isMenuOpen: boolean;
+  setIsMenuOpen: (value: boolean) => void;
+  isDeviceIndependentVis: boolean;
+}
 
 const DropDownMenu = ({
   isMenuOpen,
   setIsMenuOpen,
   isDeviceIndependentVis,
-}) => {
+}: DropDownMenuProps) => {
   return (
-    <div className={`${isDeviceIndependentVis?"":"lg:hidden"} relative`}>
+    <div className={`${isDeviceIndependentVis ? "" : "lg:hidden"} relative`}>
       {/* Hamburger Button */}
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -57,41 +63,23 @@ const DropDownMenu = ({
 
         {/* Menu Items */}
         <div className="py-2">
-          <Link
-            to="/"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-primary/10 hover:text-primary active:bg-primary/20 transition-all duration-200"
-          >
-            <Code className="w-5 h-5" />
-            <span>Discover</span>
-          </Link>
-
-          <Link
-            to="/connections"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-primary/10 hover:text-primary active:bg-primary/20 transition-all duration-200"
-          >
-            <Users className="w-5 h-5" />
-            <span>Matches</span>
-          </Link>
-
-          <Link
-            to="/requests"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-primary/10 hover:text-primary active:bg-primary/20 transition-all duration-200"
-          >
-            <Users className="w-5 h-5" />
-            <span>Requests</span>
-          </Link>
-
-          <Link
-            to="/messages"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-primary/10 hover:text-primary active:bg-primary/20 transition-all duration-200"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span>Messages</span>
-          </Link>
+          {menuRoutes.map(({ path, label, icon: Icon }) => (
+            <NavLink
+              key={path}
+              to={path}
+              onClick={setIsMenuOpen.bind(null, false)}
+              className={({ isActive }) =>
+                [
+                  "flex items-center gap-3 px-4 py-3 transition-all duration-200",
+                  "hover:bg-primary/10 hover:text-primary active:bg-primary/20",
+                  isActive ? "text-primary bg-primary/10 font-medium" : "",
+                ].join(" ")
+              }
+            >
+              <Icon className="w-5 h-5" />
+              <span>{label}</span>
+            </NavLink>
+          ))}
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { IFilter } from "./feed";
+import { IFilter } from "../../utils/types";
 
 // Filters Component
 interface FiltersPanelProps {
@@ -24,7 +24,7 @@ const FiltersPanel = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0  bg-opacity-50 z-60 flex justify-end">
+    <div id="filter" className="fixed inset-0  bg-opacity-50 z-60 flex justify-end">
       <div className="bg-base-100 w-80 h-full p-6 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Filters</h2>
@@ -163,7 +163,7 @@ const FiltersPanel = ({
             </button>
           )}
         </div>
-          {/* Will be enabled in future */}
+        {/* Will be enabled in future */}
         {/* <div>
             <label className="block text-sm font-medium mb-2">Location</label>
             <input

@@ -21,14 +21,14 @@ feedRouter.get("/feed", async (req, res) => {
       return res.status(400).json({ message: "Invalid logged in user id" });
     }
 
-    /* ---------------- Pagination ---------------- */
+    // Pagination
     const page = Math.max(parseInt(req.query.page as string) || 1, 1);
     let limit = parseInt(req.query.limit as string) || 10;
     limit = Math.min(limit, 30);
 
     const skip = (page - 1) * limit;
 
-    /* ---------------- Filters ---------------- */
+    // Filters
     const { technologies, location, experienceLevel } = req.query;
 
     const filterQuery: any = {};
@@ -53,7 +53,7 @@ feedRouter.get("/feed", async (req, res) => {
       filterQuery.experience = experienceLevel;
     }
 
-    /* ---------------- Hidden users logic ---------------- */
+    // Hidden users logic 
     const connRequests = await ConnectionReqModel.find({
       $or: [{ fromUserId: loggedInUserId }, { toUserId: loggedInUserId }],
     })
@@ -67,7 +67,7 @@ feedRouter.get("/feed", async (req, res) => {
       hiddenUsers.add(req.toUserId.toString());
     });
 
-    /* ---------------- Final Query ---------------- */
+    // Final Query
     const usersShownInFeed = await User.find({
       _id: {
         $nin: [...hiddenUsers, loggedInUserId],

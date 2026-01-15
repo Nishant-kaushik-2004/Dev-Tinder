@@ -2,14 +2,10 @@ import { useState, useEffect } from "react";
 import { GitPullRequestDraft, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router";
 import RequestCardSkeleton from "./RequestCardSkeleton";
-import EmptyState from "./EmptyState";
+import EmptyState from "./EmptyRequestsState";
 import RequestCard from "./RequestCard";
 import axios from "axios";
-import {
-  IMatchRequestResponse,
-  IRequest,
-  IReviewRequestResponse,
-} from "../../utils/types";
+import { IMatchRequestResponse, IRequest } from "../../utils/types";
 
 const MatchRequests = () => {
   const [requests, setRequests] = useState<IRequest[]>([]);
@@ -140,7 +136,9 @@ const MatchRequests = () => {
             </h1>
           </div>
 
-          {!isLoading && (
+          {isLoading ? (
+            <div className="h-6 w-64 mx-auto bg-base-300 rounded animate-pulse" />
+          ) : (
             <p className="text-lg text-base-content/70">
               {requests.length === 0
                 ? "No pending requests at the moment"

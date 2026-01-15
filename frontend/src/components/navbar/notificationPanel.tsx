@@ -1,11 +1,57 @@
 import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
+
+interface Notification {
+  title: string;
+  message: string;
+  time?: string;
+}
+
+interface NotificationPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  notifications: Notification[];
+}
 
 // Notification Panel Component
-const NotificationPanel = ({ isOpen, onClose, notifications }) => {
+const NotificationPanel = ({
+  isOpen,
+  onClose,
+  notifications,
+}: NotificationPanelProps) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("click", handleOutsideClick); // ✅ click
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [isOpen, onClose]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="dropdown menu bg-base-100 border border-base-300 rounded-box shadow-xl w-64 sm:w-80 p-0 absolute right-0 top-full mt-2 z-[60]">
+    <div
+      ref={panelRef} // ✅ VERY IMPORTANT
+      className="menu bg-base-100 border border-base-300 rounded-box shadow-xl w-64 sm:w-80 p-0 absolute right-0 top-full mt-2 z-[60]"
+      // aria-expanded={isOpen}
+    >
       {/* Header */}
       <div className="navbar bg-base-200 rounded-t-box px-4 py-2 border-b border-base-300">
         <div className="navbar-start">
@@ -16,7 +62,10 @@ const NotificationPanel = ({ isOpen, onClose, notifications }) => {
         <div className="navbar-end">
           <button
             className="btn btn-ghost btn-circle btn-xs hover:bg-base-300"
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation(); // ✅ ADD THIS
+              onClose();
+            }}
           >
             <X className="w-4 h-4 text-base-content" />
           </button>

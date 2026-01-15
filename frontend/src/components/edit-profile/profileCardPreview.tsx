@@ -1,8 +1,9 @@
 import { User } from "lucide-react";
+import { formDataType } from "./editProfile";
 
 // Live Profile Card Preview Component
-const ProfileCardPreview = ({ user }) => {
-  const validateUrl = (url) => {
+const ProfileCardPreview = ({ user }: { user: formDataType }) => {
+  const validateUrl = (url: string): boolean => {
     try {
       new URL(url);
       return true;
@@ -25,7 +26,8 @@ const ProfileCardPreview = ({ user }) => {
             alt={`${user.firstName} ${user.lastName}`}
             className="w-full h-full object-cover"
             onError={(e) => {
-              e.target.src = "https://via.placeholder.com/400x400?text=Error";
+              (e.target as HTMLImageElement).src =
+                "https://geographyandyou.com/images/user-profile.png";
             }}
           />
 
@@ -72,7 +74,7 @@ const ProfileCardPreview = ({ user }) => {
           )}
 
           {/* Skills */}
-          {user.skills?.length > 0 && (
+          {user.skills && user.skills.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {user.skills.slice(0, 4).map((skill, index) => (
                 <div
