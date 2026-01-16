@@ -4,16 +4,14 @@ import { menuRoutes } from "../../data/NavbarData";
 interface DropDownMenuProps {
   isMenuOpen: boolean;
   setIsMenuOpen: (value: boolean) => void;
-  isDeviceIndependentVis: boolean;
 }
 
 const DropDownMenu = ({
   isMenuOpen,
   setIsMenuOpen,
-  isDeviceIndependentVis,
 }: DropDownMenuProps) => {
   return (
-    <div className={`${isDeviceIndependentVis ? "" : "lg:hidden"} relative`}>
+    <div className={"lg:hidden relative"}>
       {/* Hamburger Button */}
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}

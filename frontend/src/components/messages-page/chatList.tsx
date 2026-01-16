@@ -1,16 +1,17 @@
-import { ArrowLeftToLineIcon, Divide, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ArrowLeftToLineIcon, LucideArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
 import ChatItem from "./chatItem";
 import SearchBar from "./searchBar";
 import DropDownMenu from "../navbar/mobileNavigation";
 import { useSelector } from "react-redux";
-import { Chat, userInfo } from "../../utils/types";
+import { Chat, IUserInfo } from "../../utils/types";
 import { RootState } from "../../store/store";
 import axios from "axios";
+import { useNavigate } from "react-router";
 
 interface ChatListProps {
   activeChat: Chat | null;
-  onChatSelect: (chat?: Chat, newUser?: userInfo) => void;
+  onChatSelect: (chat?: Chat, newUser?: IUserInfo) => void;
   isMobile: boolean;
   onToggleSidebar: () => void;
   isLoading: boolean;
@@ -26,8 +27,9 @@ const ChatList: React.FC<ChatListProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState<userInfo[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<IUserInfo[]>([]);
 
+  const navigate = useNavigate();
   const chats = useSelector((store: RootState) => store.chats);
 
   useEffect(() => {
@@ -88,9 +90,12 @@ const ChatList: React.FC<ChatListProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <DropDownMenu
-              isDeviceIndependentVis={true}
               isMenuOpen={isMenuOpen}
               setIsMenuOpen={setIsMenuOpen}
+            />
+            <LucideArrowLeft
+              className="w-6 h-6 hidden lg:block cursor-pointer"
+              onClick={() => navigate(-1)}
             />
             <h1 className="text-2xl font-bold">Messages</h1>
           </div>

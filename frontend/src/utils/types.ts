@@ -37,7 +37,7 @@ export interface IUserProfile extends IUserInfo {
 
 export interface Chat {
   chatId: string;
-  participantInfo: IUser[];
+  participantInfo: IUser;
   lastMessage: string;
   timestamp: string;
   unreadCount: number;
