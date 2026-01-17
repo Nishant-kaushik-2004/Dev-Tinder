@@ -60,7 +60,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
     return () => clearTimeout(delay);
   }, [searchValue, chats]);
-  console.log(searchValue);
+
   // Filter users based on search input and exclude those who already have chats so that they don't appear in "Start new chat" list
   // const filteredUsers = useMemo(() => {
   //   if (!searchValue) return [];
@@ -95,7 +95,7 @@ const ChatList: React.FC<ChatListProps> = ({
             />
             <LucideArrowLeft
               className="w-6 h-6 hidden lg:block cursor-pointer"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/")}
             />
             <h1 className="text-2xl font-bold">Messages</h1>
           </div>

@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import { Request, Response, Router } from "express";
 import { User } from "../models/userModel.js";
 import {
   signupDataValidation,
@@ -7,28 +7,30 @@ import {
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const authRouter = express.Router();
+const authRouter = Router();
 
 authRouter.post("/signup", async (req: Request, res: Response) => {
   try {
     const signupInput = req.body;
 
-    console.log(signupInput);
+    console.log("Signup input:", signupInput);
 
     const { email, password } = signupInput;
 
     const inValidationMsg = signupDataValidation(signupInput);
 
-    console.log(inValidationMsg);
+    console.log("Signup validation message:", inValidationMsg);
 
     if (inValidationMsg) throw new Error(inValidationMsg);
 
     const user = await User.findOne({ email });
 
-    if (user)
-      return res
+    if (user) {
+      res
         .status(409)
-        .json({ message: "A user already exist with this email adress" });
+        .json({ message: "A user already registered with this email address" });
+      return;
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -45,7 +47,7 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
       process.env.SECRETKEY!,
       {
         expiresIn: "30d",
-      }
+      },
     );
 
     // ✅ Set cookie in response
@@ -57,31 +59,32 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === "production",
     });
 
-    return res
-      .status(200)
-      .json({ msg: "User Signed up successfully", user: newUser });
+    res.status(201).json({ message: "Signup successfull", user: newUser });
   } catch (err) {
     const errorMsg =
       err instanceof Error ? err.message : "Something went wrong";
-    return res.status(400).json({ message: "ERROR: " + errorMsg });
+    res.status(400).json({ message: "ERROR: " + errorMsg });
   }
 });
 
 authRouter.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    console.log(req.body);
 
     const inValidationMsg = loginDataValidation({ email, password });
 
-    console.log(inValidationMsg);
+    console.log("Login validation message:", inValidationMsg);
 
     if (inValidationMsg) throw new Error(inValidationMsg);
 
-    const user = await User.findOne({ email });
+    // 🚨 Do not forget to select password field which is excluded by default 🚨
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) throw new Error("Invalid credentials");
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    console.log(isPasswordCorrect);
 
     if (!isPasswordCorrect) throw new Error("Invalid credentials");
 
@@ -91,7 +94,7 @@ authRouter.post("/login", async (req: Request, res: Response) => {
       process.env.SECRETKEY!,
       {
         expiresIn: "30d",
-      }
+      },
     );
 
     // ✅ Set cookie in response
@@ -103,15 +106,15 @@ authRouter.post("/login", async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === "production",
     });
 
-    return res.status(200).json({ message: "Logged in successfully", user });
+    res.status(200).json({ message: "Logged in successfully", user });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
-    return res.status(400).json({ message: "ERROR: " + errorMessage });
+    res.status(400).json({ message: "ERROR: " + errorMessage });
   }
 });
 
-authRouter.post("/logout", (req, res) => {
+authRouter.post("/logout", (req: Request, res: Response) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
@@ -121,11 +124,11 @@ authRouter.post("/logout", (req, res) => {
       // domain: "localhost", // 👈 add this if you’re on localhost
     });
     console.log("Logged out successfully");
-    return res.status(200).json({ message: "Logged out successfully" });
+    res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
-    return res.status(401).json({ message: "ERROR: " + errorMessage });
+    res.status(401).json({ message: "ERROR: " + errorMessage });
   }
 });
 

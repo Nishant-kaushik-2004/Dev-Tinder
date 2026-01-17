@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { ConnectionReqModel } from "../models/connectionReqModel.js";
 import { User } from "../models/userModel.js";
 import mongoose from "mongoose";
@@ -16,64 +16,71 @@ declare global {
 const userRouter = express.Router();
 
 // Get all the pending connections of the loggedIn user. (status interested)
-userRouter.get("/user/requests/received", async (req, res) => {
-  try {
-    const loggedInUserId = req.user;
+userRouter.get(
+  "/user/requests/received",
+  async (req: Request, res: Response) => {
+    try {
+      const loggedInUserId = req.user;
 
-    if (!loggedInUserId)
-      return res.status(401).json({
-        message:
-          "You are Unauthorised, Please login first to see received match requests!",
+      if (!loggedInUserId) {
+        res.status(401).json({
+          message:
+            "You are Unauthorised, Please login first to see received match requests!",
+        });
+        return;
+      }
+
+      const requests = await ConnectionReqModel.find({
+        toUserId: loggedInUserId,
+        status: "interested",
+      })
+        .populate("fromUserId", USER_SAFE_DATA)
+        .lean(); // important;
+      // 4️⃣ Best practice for READ-only APIs
+
+      // Use .lean() when:
+      // 	•	Fetching lists (feeds, chats, requests)
+      // 	•	Returning data to frontend
+      // 	•	No .save() needed
+
+      // ❌ Don’t use .lean() when:
+      // 	•	You want to update the document later
+      // 	•	You need .save() or middleware
+
+      const formattedRequests = requests.map((req) => {
+        const { fromUserId, ...rest } = req;
+        return {
+          ...rest,
+          fromUser: fromUserId, // rename here
+        };
       });
 
-    const requests = await ConnectionReqModel.find({
-      toUserId: loggedInUserId,
-      status: "interested",
-    })
-      .populate("fromUserId", USER_SAFE_DATA)
-      .lean(); // important;
-    // 4️⃣ Best practice for READ-only APIs
-
-    // Use .lean() when:
-    // 	•	Fetching lists (feeds, chats, requests)
-    // 	•	Returning data to frontend
-    // 	•	No .save() needed
-
-    // ❌ Don’t use .lean() when:
-    // 	•	You want to update the document later
-    // 	•	You need .save() or middleware
-
-    const formattedRequests = requests.map((req) => {
-      const { fromUserId, ...rest } = req;
-      return {
-        ...rest,
-        fromUser: fromUserId, // rename here
-      };
-    });
-
-    return res.status(200).json({
-      message: "Fecthed all pending connection requests successfully",
-      requests: formattedRequests,
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      return res.status(400).json({ message: "ERROR : " + error.message });
-    } else {
-      return res.status(500).json({ message: "ERROR : Something went wrong" });
+      res.status(200).json({
+        message: "Fetched all pending connection requests successfully",
+        requests: formattedRequests,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ message: "ERROR : " + error.message });
+      } else {
+        res.status(500).json({ message: "ERROR : Something went wrong" });
+      }
     }
-  }
-});
+  },
+);
 
 // Get all connections of the loggedIn user. (status accepted)
-userRouter.get("/user/connections", async (req, res) => {
+userRouter.get("/user/connections", async (req: Request, res: Response) => {
   try {
     const loggedInUserId = req.user;
 
-    if (!loggedInUserId)
-      return res.status(401).json({
+    if (!loggedInUserId) {
+      res.status(401).json({
         message:
           "You are Unauthorised, Please login first to see your connections!",
       });
+      return;
+    }
 
     const connectionsData = await ConnectionReqModel.find({
       status: "accepted",
@@ -95,21 +102,21 @@ userRouter.get("/user/connections", async (req, res) => {
       };
     });
 
-    return res.status(200).json({
-      message: "Fecthed all your connections successfully",
+    res.status(200).json({
+      message: "Fetched all your connections successfully",
       connections,
     });
   } catch (error) {
     if (error instanceof Error) {
-      return res.status(400).json({ message: "ERROR : " + error.message });
+      res.status(400).json({ message: "ERROR : " + error.message });
     } else {
-      return res.status(500).json({ message: "ERROR : Something went wrong" });
+      res.status(500).json({ message: "ERROR : Something went wrong" });
     }
   }
 });
 
 // Search users among connections with whom chat doesn't exist (to start new chat with them)
-userRouter.get("/users/search", async (req, res) => {
+userRouter.get("/users/search", async (req: Request, res: Response) => {
   try {
     const loggedInUserId = req.user;
     const query = req.query.query?.toString().trim().toLowerCase();
@@ -124,11 +131,13 @@ userRouter.get("/users/search", async (req, res) => {
       .filter((id) => mongoose.Types.ObjectId.isValid(id)) // Removes invalid ObjectId strings
       .map((id) => new mongoose.Types.ObjectId(id)); // Convert to ObjectId type
 
-    if (!query)
-      return res.json({
+    if (!query) {
+      res.json({
         message: "Nothing to search, please provide a search query",
         users: [],
       });
+      return;
+    }
 
     console.log("loggedInUserId: ", loggedInUserId);
     console.log("query: ", query);
@@ -146,16 +155,17 @@ userRouter.get("/users/search", async (req, res) => {
         rows.map((c) =>
           c.fromUserId.toString() === loggedInUserId
             ? c.toUserId.toString()
-            : c.fromUserId.toString()
-        )
+            : c.fromUserId.toString(),
+        ),
       );
 
     if (matchedUserIds.length === 0) {
-      return res.status(200).json({
+      res.status(200).json({
         message:
           "You have no connections yet, Please connect with users first to chat",
         users: [],
       }); // No matched users → nothing to search
+      return;
     }
 
     // STEP 2: MongoDB search only inside matched user IDs
@@ -168,56 +178,59 @@ userRouter.get("/users/search", async (req, res) => {
           { email: { $regex: `^${query}`, $options: "i" } },
         ],
       },
-      "_id firstName lastName email photoUrl about"
+      "_id firstName lastName email photoUrl about",
     )
       .limit(10)
       .lean();
 
     if (users.length === 0) {
-      return res.status(200).json({
+      res.status(200).json({
         message: "No users found matching your search query",
         users,
       });
+      return;
     }
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Users found matching your search query",
       users,
     });
   } catch (error) {
     console.error("Search error:", error);
     if (error instanceof Error) {
-      return res.status(400).json({ message: "ERROR : " + error.message });
+      res.status(400).json({ message: "ERROR : " + error.message });
     } else {
-      return res.status(500).json({ message: "ERROR : Something went wrong" });
+      res.status(500).json({ message: "ERROR : Something went wrong" });
     }
   }
 });
 
 // Get any user by userId
-userRouter.get("/user/:userId", async (req, res) => {
+userRouter.get("/user/:userId", async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Invalid User ID" });
+      res.status(400).json({ message: "Invalid User ID" });
+      return;
     }
 
     const user = await User.findById(userId).select("-password"); // Exclude password field
 
     if (!user) {
-      return res.status(404).json({ message: "User details not found" });
+      res.status(404).json({ message: "User details not found" });
+      return;
     }
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "User fetched successfully",
       user,
     });
   } catch (error) {
     if (error instanceof Error) {
-      return res.status(400).json({ message: "ERROR : " + error.message });
+      res.status(400).json({ message: "ERROR : " + error.message });
     } else {
-      return res.status(500).json({ message: "ERROR : Something went wrong" });
+      res.status(500).json({ message: "ERROR : Something went wrong" });
     }
   }
 });

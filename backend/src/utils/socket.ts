@@ -1,10 +1,15 @@
 import { Server } from "socket.io";
+import { Server as HttpServer } from "http";
+import crypto from "crypto";
+import { Chat, Message } from "../models/chatModel.js";
+import mongoose from "mongoose";
+import { User } from "../models/userModel.js";
 
 interface ServerToClientEvents {
   messageReceived: (data: {
     messagePayload: {
-      _id: mongoose.Types.ObjectId;
-      chatId: mongoose.Types.ObjectId;
+      id: mongoose.Types.ObjectId;
+      chatId: mongoose.Types.ObjectId; 
       sender: string;
       text: string;
       seenBy: string[];
@@ -52,12 +57,6 @@ interface SocketData {
   age: number;
 }
 
-import { Server as HttpServer } from "http";
-import crypto from "crypto";
-import { Chat, Message } from "../models/chatModel.js";
-import mongoose from "mongoose";
-import { User } from "../models/userModel.js";
-
 const getSecretRoomId = (userId: String, targetUserId: String) => {
   const roomId = [userId, targetUserId].sort().join("_");
   return crypto.createHash("sha256").update(roomId).digest("hex");
@@ -71,7 +70,7 @@ const InitializeSocket = (server: HttpServer) => {
     SocketData
   >(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: process.env.FRONTEND_URL || "http://localhost:5173",
     },
   });
   // NOTE: Socket is a server side name for a client connection.
@@ -119,7 +118,7 @@ const InitializeSocket = (server: HttpServer) => {
       // socket.join(roomId);
 
       console.log(
-        `${senderInfo.firstName} sent message to ${receiverId}: ${text}`
+        `${senderInfo.firstName} sent message to ${receiverId}: ${text}`,
       );
 
       // 2) Find or create chat
@@ -129,7 +128,7 @@ const InitializeSocket = (server: HttpServer) => {
 
       if (!chat) {
         console.log(
-          `No existing chat found between ${senderId} and ${receiverId}. Creating new chat.`
+          `No existing chat found between ${senderId} and ${receiverId}. Creating new chat.`,
         );
         chat = await Chat.create({
           participants: [senderId, receiverId],
@@ -146,7 +145,7 @@ const InitializeSocket = (server: HttpServer) => {
       });
 
       const messagePayload = {
-        _id: message._id, // WebSocket JSON serialization converts this: ObjectId("67a3c99ee60cb081af95d111") to this: "67a3c99ee60cb081af95d111"
+        id: message._id, // WebSocket JSON serialization converts this: ObjectId("67a3c99ee60cb081af95d111") to this: "67a3c99ee60cb081af95d111"
         chatId: chat._id,
         sender: senderId,
         text,

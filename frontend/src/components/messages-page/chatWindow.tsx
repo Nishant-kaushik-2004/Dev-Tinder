@@ -7,14 +7,19 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { addNewChat, updateChat } from "../../store/chatsSlice";
 import getSocket from "../../utils/socket";
-import { Chat, MessageType, ReceivedMessage } from "../../utils/types";
-import { IUser } from "../../store/userSlice";
+import {
+  Chat,
+  IUserInfo,
+  MessageType,
+  ReceivedMessage,
+} from "../../utils/types";
 import { RootState } from "../../store/store";
 import ChatWindowSkeleton from "./chatWindowSkeLoader";
+import InvalidChatFallback from "./InvalidChatFallback";
 
 interface ChatWindowProps {
   activeChat: Chat;
-  loggedInUser: IUser;
+  loggedInUser: IUserInfo;
   onBack: () => void;
   isMobile: boolean;
 }
@@ -45,7 +50,7 @@ const ChatWindow = () => {
   useEffect(() => {
     // Reset chat messages when activeChat or tempChat changes
     setChatMessages([]);
-  }, [activeChat, tempChat]);
+  }, [chatId, tempChat]);
 
   // If userId is present in params then probably(not always) we are in a temporary chat (before first message) so we need to create a temporary chat object locally to show chat window properly.
   useEffect(() => {
@@ -56,7 +61,7 @@ const ChatWindow = () => {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/user/${userId}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
         if (!res.data.user) {
           throw new Error("User not found");
@@ -98,7 +103,7 @@ const ChatWindow = () => {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/messages/${chatId}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
         if (!res.data.messages) {
           throw new Error("No chat messages found");
@@ -125,7 +130,8 @@ const ChatWindow = () => {
       // Only update if message belongs to the currently open chat
       if (
         chat.chatId === chatId ||
-        (tempChat && tempChat.participantInfo._id === senderInfo._id)
+        (tempChat && tempChat.participantInfo._id === senderInfo._id) ||
+        senderInfo._id === loggedInUser._id
       ) {
         setChatMessages((prevMessages) => [...prevMessages, messagePayload]); // React passes the latest state value into the function (prev), even if multiple state updates are queued. So, no risk of losing any new messages which arrive in quick succession.
       }
@@ -134,13 +140,14 @@ const ChatWindow = () => {
       // dispatch(updateUnreadCount(newMessage));
 
       if (senderInfo._id === loggedInUser._id) {
-        console.log("Goes inside if block");
-
+        // Message sent by logged in user himself/herself inside temp chat
+        console.log("Message sent by logged in user inside temp chat");
         if (!tempChat) {
           // It means its not the first message(of temp chat) so just update existing chat in store
           const existingChatIdx = chats.findIndex(
-            (c) => c.chatId === chat.chatId
+            (c) => c.chatId === chat.chatId,
           );
+          console.log("Existing chat index:", existingChatIdx);
           if (existingChatIdx === -1) return; // Just a safety check
           dispatch(
             updateChat({
@@ -150,7 +157,7 @@ const ChatWindow = () => {
                 timestamp: new Date(messagePayload.timestamp).toISOString(),
                 unreadCount: chats[existingChatIdx].unreadCount, // No change in unread count when logged in user himself/herself sends the message
               },
-            })
+            }),
           );
           return;
         }
@@ -171,7 +178,7 @@ const ChatWindow = () => {
 
       // Update chats list in redux store
       const existingChatIdx = chats.findIndex(
-        (c) => c.participantInfo._id === senderInfo._id
+        (c) => c.participantInfo._id === senderInfo._id,
       );
       const newChat = {
         chatId: chat.chatId,
@@ -282,7 +289,7 @@ const ChatWindow = () => {
   }
 
   if (!activeChat && !tempChat) {
-    return <ChatWindowFallback />;
+    return <ChatWindowFallback isChatInvalid={true} />;
   }
 
   const chat = activeChat || tempChat;
@@ -341,12 +348,12 @@ const ChatWindow = () => {
             avatar={user.avatar}
           />
         ))}
-        {isTyping && (
+        {/* {isTyping && (
           <div className="flex items-center gap-2 text-base-content/50 text-sm">
             <span>{user.name} is typing</span>
             <span className="loading loading-dots loading-xs"></span>
           </div>
-        )}
+        )} */}
         <div ref={messagesEndRef} />
       </div>
 
@@ -357,7 +364,7 @@ const ChatWindow = () => {
             ref={inputRef}
             type="text"
             placeholder="Type a message..."
-            className="input input-bordered flex-1"
+            className="input input-bordered flex-1 focus:outline-none"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyPress}

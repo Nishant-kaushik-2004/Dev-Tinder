@@ -18,6 +18,8 @@ import feedRouter from "./routes/feed.js";
 const app = express();
 const server = createServer(app);
 
+const PORT = process.env.PORT || 3333;
+
 // var corsOptions = {
 //   origin: 'http://localhost:5173',
 //   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -25,7 +27,7 @@ const server = createServer(app);
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend
+    origin: process.env.FRONTEND_URL || "http://localhost:5173", // frontend
     credentials: true, // Necessary for allowing cookies
   })
 );
@@ -52,8 +54,8 @@ app.use(
 connectDb()
   .then(() => {
     console.log("db connected successfully");
-    server.listen(3333, () => {
-      console.log("server running at http://localhost:3333");
+    server.listen(PORT, () => {
+      console.log(`server running at port: ${PORT}`);
     });
   })
   .catch((err) => {
@@ -61,4 +63,5 @@ connectDb()
       "An unexpected error occured while connecting database : ",
       err
     );
+    process.exit(1);
   });

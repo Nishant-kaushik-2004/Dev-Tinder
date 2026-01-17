@@ -38,7 +38,7 @@ export const signupDataValidation = ({
 
 export const loginDataValidation = ({ email, password }: loginInput) => {
   if (!isEmail(email)) return "Invalid email format";
-  else if (
+  if (
     !isStrongPassword(password, {
       minLength: 8,
       minLowercase: 1,
@@ -69,7 +69,7 @@ export const allowedFields = [
 
 export const isEditValid = (edits: {}) => {
   const isEditAllowed = Object.keys(edits).every((field) =>
-    allowedFields.includes(field)
+    allowedFields.includes(field),
   );
 
   return isEditAllowed;

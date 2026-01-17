@@ -137,7 +137,6 @@ chatRouter.get("/chats", async (req: Request, res: Response) => {
     res
       .status(200)
       .json({ message: "Chats fetched successfully", chats: rawResults });
-    return;
   } catch (err: unknown) {
     console.error("GET /api/chats error:", err);
     const message =
@@ -154,28 +153,31 @@ chatRouter.get("/messages/:chatId", async (req: Request, res: Response) => {
 
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(chatId)) {
-      return res.status(400).json({
+      res.status(400).json({
         message:
           "Invalid chatId, The chat you are looking for does not exist!!",
         error: "ERROR: Invalid chatId",
       });
+      return;
     }
 
     const chat = await Chat.findById(chatId).select("_id participants");
     if (!chat) {
-      return res.status(404).json({
+      res.status(404).json({
         message:
           "Chat not found, The chat you are looking for does not exist!!",
         error: "ERROR: Chat not found",
       });
+      return;
     }
 
     // comparing as strings because participants are stored as ObjectId
-    if (!chat.participants.map((p: any) => p.toString()).includes(userId)) {
-      return res.status(403).json({
+    if (!chat?.participants.map((p: any) => p.toString()).includes(userId)) {
+      res.status(403).json({
         message: "Access denied, You are not a participant of this chat!!",
         error: "ERROR: Access denied",
       });
+      return;
     }
 
     // Fetch messages
@@ -192,14 +194,14 @@ chatRouter.get("/messages/:chatId", async (req: Request, res: Response) => {
       seenBy: msg.seenBy.map((id) => id.toString()),
     }));
 
-    return res
+    res
       .status(200)
       .json({ message: "Messages fetched successfully", messages: formatted });
   } catch (error) {
     console.error("Error fetching messages:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Internal server error";
-    return res.status(500).json({
+    res.status(500).json({
       message: "Internal server error",
       error: "ERROR: " + errorMessage,
     });

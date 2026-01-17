@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { User } from "../models/userModel.js";
 import { ConnectionReqModel } from "../models/connectionReqModel.js";
 import { Message } from "../models/chatModel.js";
@@ -10,7 +10,7 @@ export const USER_SAFE_DATA =
   "firstName lastName photoUrl age gender about skills location isFresher experience company jobTitle";
 
 // Get feed for logged in user. (All users except already interacted ones)
-feedRouter.get("/feed", async (req, res) => {
+feedRouter.get("/feed", async (req: Request, res: Response) => {
   try {
     const loggedInUserId = req.user;
 
@@ -18,7 +18,10 @@ feedRouter.get("/feed", async (req, res) => {
       typeof loggedInUserId !== "string" ||
       !mongo.ObjectId.isValid(loggedInUserId)
     ) {
-      return res.status(400).json({ message: "Invalid logged in user id" });
+      res
+        .status(400)
+        .json({ message: "Invalid logged in user id, Please login again" });
+      return;
     }
 
     // Pagination
@@ -38,8 +41,8 @@ feedRouter.get("/feed", async (req, res) => {
       typeof technologies === "string"
         ? [technologies]
         : Array.isArray(technologies)
-        ? technologies
-        : [];
+          ? technologies
+          : [];
 
     if (techArray.length) {
       filterQuery.skills = { $in: techArray };
@@ -53,7 +56,7 @@ feedRouter.get("/feed", async (req, res) => {
       filterQuery.experience = experienceLevel;
     }
 
-    // Hidden users logic 
+    // Hidden users logic
     const connRequests = await ConnectionReqModel.find({
       $or: [{ fromUserId: loggedInUserId }, { toUserId: loggedInUserId }],
     })
@@ -79,7 +82,7 @@ feedRouter.get("/feed", async (req, res) => {
       .limit(limit)
       .lean();
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Feed fetched successfully",
       developers: usersShownInFeed,
       pagination: {
@@ -91,14 +94,15 @@ feedRouter.get("/feed", async (req, res) => {
   } catch (error) {
     console.error(error);
     if (error instanceof Error) {
-      return res.status(400).json({ message: "ERROR: " + error.message });
+      res.status(400).json({ message: "ERROR: " + error.message });
+    } else {
+      res.status(500).json({ message: "ERROR: Something went wrong" });
     }
-    return res.status(500).json({ message: "ERROR: Something went wrong" });
   }
 });
 
 // Get feed stats for logged in user.
-feedRouter.get("/feed/stats", async (req, res) => {
+feedRouter.get("/feed/stats", async (req: Request, res: Response) => {
   try {
     const loggedInUserId = req.user;
 
@@ -106,9 +110,10 @@ feedRouter.get("/feed/stats", async (req, res) => {
       typeof loggedInUserId !== "string" ||
       !mongo.ObjectId.isValid(loggedInUserId)
     ) {
-      return res
+      res
         .status(400)
-        .json({ message: "ERROR : Invalid logged in user id" });
+        .json({ message: "Invalid logged in user id, Please login again" });
+      return;
     }
 
     const today = new Date().toDateString();
@@ -117,13 +122,13 @@ feedRouter.get("/feed/stats", async (req, res) => {
     startOfWeek.setDate(startOfWeek.getDate() - 7);
 
     const loggedInUser = await User.findById(loggedInUserId).select(
-      "profileViews lastViewedBy"
+      "profileViews lastViewedBy",
     );
 
     const totalViews = loggedInUser?.profileViews || 0;
 
     const newViewsToday = Object.values(
-      loggedInUser?.lastViewedBy || {}
+      loggedInUser?.lastViewedBy || {},
     ).filter((date) => date === today).length;
 
     const totalMatches = await ConnectionReqModel.countDocuments({
@@ -191,7 +196,7 @@ feedRouter.get("/feed/stats", async (req, res) => {
     //   createdAt: { $gte: startOfWeek },
     // });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Feed stats fetched successfully",
       stats: {
         views: {
@@ -214,9 +219,9 @@ feedRouter.get("/feed/stats", async (req, res) => {
     });
   } catch (error) {
     if (error instanceof Error) {
-      return res.status(400).json({ message: "ERROR : " + error.message });
+      res.status(400).json({ message: "ERROR : " + error.message });
     } else {
-      return res.status(500).json({ message: "ERROR : Something went wrong" });
+      res.status(500).json({ message: "ERROR : Something went wrong" });
     }
   }
 });

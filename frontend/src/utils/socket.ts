@@ -15,7 +15,11 @@ let socket: Socket | null = null;
 
 export default function getSocket(createNew = false): Socket {
   if (!socket || createNew) {
-    socket = io(import.meta.env.VITE_BACKEND_URL);
+    if (location.hostname == "localhost") {
+      socket = io(import.meta.env.VITE_BACKEND_URL);
+    } else {
+      socket = io("/", { path: "/socket.io" });
+    }
   }
   return socket;
 }

@@ -46,8 +46,8 @@ export interface Chat {
 }
 
 export type MessageType = {
-  chatId: string;
   id: string;
+  chatId: string;
   text: string;
   sender: string;
   timestamp: Date;
