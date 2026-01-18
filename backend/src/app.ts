@@ -25,11 +25,18 @@ const PORT = process.env.PORT || 3333;
 //   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 // }
 
+// This tells Express: “The original request was HTTPS, even if I see HTTP internally.”
+app.set("trust proxy", 1);
+// Without this:
+// 	•	secure: true cookies ❌
+// 	•	Sessions break ❌
+// 	•	Auth breaks on refresh ❌
+
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173", // frontend
     credentials: true, // Necessary for allowing cookies
-  })
+  }),
 );
 
 InitializeSocket(server);
@@ -46,7 +53,7 @@ app.use(
   profileRouter,
   requestRouter,
   userRouter,
-  chatRouter
+  chatRouter,
 ); // this is app level Middleware, Here userAuth is applied to all routes declared after it in the middleware chain.
 // 🔄 Option 1: App-Level Middleware in app.use -> Used when most routes require auth.
 // 🎯 Option 2: Router-Level Middleware ->  Use when only specific route groups need protection.
@@ -61,7 +68,7 @@ connectDb()
   .catch((err) => {
     console.log(
       "An unexpected error occured while connecting database : ",
-      err
+      err,
     );
     process.exit(1);
   });

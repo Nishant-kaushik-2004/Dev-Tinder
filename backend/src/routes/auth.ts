@@ -54,6 +54,7 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
     res.cookie("token", token, {
       httpOnly: true, // Prevent JS access
       secure: true, // MUST be true (we had made ec2 backend HTTPS now using nginx)
+      path: "/", // VERY IMPORTANT as Cookie may only apply to /login
       sameSite: "none", // REQUIRED for cross-site (Vercel → EC2)
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
       // secure: process.env.NODE_ENV === "production",
@@ -101,6 +102,7 @@ authRouter.post("/login", async (req: Request, res: Response) => {
     res.cookie("token", token, {
       httpOnly: true, // Prevent JS access
       secure: true, // MUST be true (we had made ec2 backend HTTPS now using nginx)
+      path: "/", // VERY IMPORTANT as Cookie may only apply to /login
       sameSite: "none", // REQUIRED for cross-site (Vercel → EC2)
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
       // secure: process.env.NODE_ENV === "production",
@@ -120,7 +122,7 @@ authRouter.post("/logout", (req: Request, res: Response) => {
       httpOnly: true,
       sameSite: "none", // REQUIRED for cross-site (Vercel → EC2)
       secure: true, // MUST be true (we had made ec2 backend HTTPS now using nginx)
-      path: "/", // 👈 must match login
+      path: "/", // VERY IMPORTANT as Cookie may only apply to /login so gone on refresh
       // domain: "localhost", // 👈 add this if you’re on localhost
     });
     console.log("Logged out successfully");
