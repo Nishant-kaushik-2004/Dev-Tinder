@@ -26,16 +26,30 @@ const PORT = process.env.PORT || 3333;
 // }
 
 // This tells Express: “The original request was HTTPS, even if I see HTTP internally.”
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 // Without this:
 // 	•	secure: true cookies ❌
 // 	•	Sessions break ❌
 // 	•	Auth breaks on refresh ❌
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL, // production (Vercel)
+  "http://localhost:5173", // local dev
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173", // frontend
-    credentials: true, // Necessary for allowing cookies
+    origin: (origin, callback) => {
+      // allow server-to-server, curl, etc.
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
   }),
 );
 

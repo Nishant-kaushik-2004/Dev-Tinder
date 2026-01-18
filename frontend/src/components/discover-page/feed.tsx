@@ -41,21 +41,18 @@ const Feed = () => {
             limit: 10,
             ...appliedFilters,
           },
-        }
+        },
       );
-      console.log(res.data);
-
       if (!res.data.developers) {
         throw new Error("No developers found");
       }
 
-      console.log(res.data.developers);
       setDevelopers(res.data.developers || []);
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
       console.error(
         "Fetching developers failed:",
-        axiosError.response?.data?.message || axiosError.message
+        axiosError.response?.data?.message || axiosError.message,
       );
 
       // toast / alert
@@ -76,16 +73,15 @@ const Feed = () => {
       try {
         const res = await axios.get<IFetchFeedStatsResponse>(
           `${import.meta.env.VITE_BACKEND_URL}/feed/stats`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
-        console.log(res.data.stats);
         setStats(res.data.stats);
       } catch (error) {
         const axiosError = error as AxiosError<{ message?: string }>;
         console.error(
           "Fetching feed stats failed:",
-          axiosError.response?.data?.message || axiosError.message
+          axiosError.response?.data?.message || axiosError.message,
         );
 
         // toast / alert
@@ -112,7 +108,7 @@ const Feed = () => {
   const handleSwipe = (direction: "left" | "right"): void => {
     if (!developers || developers.length === 0) return;
     console.log(
-      `Swiped ${direction} on ${developers[currentDeveloper].firstName} ${developers[currentDeveloper].lastName}`
+      `Swiped ${direction} on ${developers[currentDeveloper].firstName} ${developers[currentDeveloper].lastName}`,
     );
     setCurrentDeveloper((prev) => (prev + 1) % developers.length || 0);
   };
@@ -180,7 +176,7 @@ const Feed = () => {
           </div>
           <div className="navbar-end">
             <button
-            id="filterBtn"
+              id="filterBtn"
               className="btn btn-outline btn-sm"
               onClick={() => setShowFilters(true)}
             >
