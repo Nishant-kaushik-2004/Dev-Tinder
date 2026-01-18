@@ -53,10 +53,10 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
     // ✅ Set cookie in response
     res.cookie("token", token, {
       httpOnly: true, // Prevent JS access
-      // secure: true, // Use only over HTTPS (true only for production)
-      sameSite: "strict", // Prevent CSRF
+      secure: true, // MUST be true (we had made ec2 backend HTTPS now using nginx)
+      sameSite: "none", // REQUIRED for cross-site (Vercel → EC2)
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
-      secure: process.env.NODE_ENV === "production",
+      // secure: process.env.NODE_ENV === "production",
     });
 
     res.status(201).json({ message: "Signup successfull", user: newUser });
@@ -100,10 +100,10 @@ authRouter.post("/login", async (req: Request, res: Response) => {
     // ✅ Set cookie in response
     res.cookie("token", token, {
       httpOnly: true, // Prevent JS access
-      // secure: true, // Use only over HTTPS (true only for production)
-      sameSite: "strict", // Prevent CSRF
+      secure: true, // MUST be true (we had made ec2 backend HTTPS now using nginx)
+      sameSite: "none", // REQUIRED for cross-site (Vercel → EC2)
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
-      secure: process.env.NODE_ENV === "production",
+      // secure: process.env.NODE_ENV === "production",
     });
 
     res.status(200).json({ message: "Logged in successfully", user });
@@ -118,8 +118,8 @@ authRouter.post("/logout", (req: Request, res: Response) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "none", // REQUIRED for cross-site (Vercel → EC2)
+      secure: true, // MUST be true (we had made ec2 backend HTTPS now using nginx)
       path: "/", // 👈 must match login
       // domain: "localhost", // 👈 add this if you’re on localhost
     });

@@ -29,8 +29,6 @@ const Feed = () => {
   const [appliedFilters, setAppliedFilters] = useState<IFilter>({});
   const [page, setPage] = useState(1);
 
-  console.log(appliedFilters, " ", page);
-
   const fetchDevelopers = async () => {
     setIsDevelopersLoading(true);
     try {

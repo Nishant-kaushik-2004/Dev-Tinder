@@ -15,11 +15,18 @@ let socket: Socket | null = null;
 
 export default function getSocket(createNew = false): Socket {
   if (!socket || createNew) {
-    if (location.hostname == "localhost") {
-      socket = io(import.meta.env.VITE_BACKEND_URL);
-    } else {
-      socket = io("/", { path: "/socket.io" });
-    }
+    socket = io(import.meta.env.VITE_BACKEND_URL!, {
+      path: "/socket.io",
+      withCredentials: true, // 🔴 REQUIRED for cookies
+    });
+    // if (location.hostname == "localhost") {
+    //   socket = io(import.meta.env.VITE_BACKEND_URL);
+    // } else {
+    //   socket = io("/", {
+    //     path: "/socket.io",
+    //     withCredentials: true, // 🔴 REQUIRED for cookies
+    //   });
+    // }
   }
   return socket;
 }

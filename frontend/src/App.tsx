@@ -8,7 +8,7 @@ import EditProfile from "./components/edit-profile/editProfile";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { setUser } from "./store/userSlice";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import MatchesPage from "./components/matched-profiles/connections";
 import MatchRequests from "./components/match-request/matchRequests";
 import UserProfilePage from "./components/user-profile/userProfilePage";
@@ -31,7 +31,7 @@ const App = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/profile/view`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.status == 200) {
@@ -39,8 +39,8 @@ const App = () => {
         dispatch(setUser(response.data.user));
       }
     } catch (error) {
-      console.log(error.response?.data);
-      const errorMessage = error.response?.data || "No User found";
+      const axiosError = error as AxiosError;
+      const errorMessage = axiosError.response?.data || "No User found";
       console.log(errorMessage);
     }
   };

@@ -9,7 +9,7 @@ interface ServerToClientEvents {
   messageReceived: (data: {
     messagePayload: {
       id: mongoose.Types.ObjectId;
-      chatId: mongoose.Types.ObjectId; 
+      chatId: mongoose.Types.ObjectId;
       sender: string;
       text: string;
       seenBy: string[];
@@ -62,6 +62,11 @@ const getSecretRoomId = (userId: String, targetUserId: String) => {
   return crypto.createHash("sha256").update(roomId).digest("hex");
 };
 
+// export const allowedOrigins = [
+//   process.env.FRONTEND_URL,
+//   "http://localhost:5173",
+// ];
+
 const InitializeSocket = (server: HttpServer) => {
   const io = new Server<
     ClientToServerEvents,
@@ -69,8 +74,10 @@ const InitializeSocket = (server: HttpServer) => {
     InterServerEvents,
     SocketData
   >(server, {
+    // origin: process.env.FRONTEND_URL || "http://localhost:5173",
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:5173",
+      origin: process.env.FRONTEND_URL!,
+      credentials: true,
     },
   });
   // NOTE: Socket is a server side name for a client connection.
