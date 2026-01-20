@@ -15,6 +15,7 @@ import {
 } from "../../utils/types";
 import axios, { AxiosError } from "axios";
 import formatTimestamp from "../../helper/formatTimeStamp";
+import api from "../../utils/api";
 
 const UserProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -27,9 +28,9 @@ const UserProfilePage = () => {
 
   const isOwnProfile = pathname === "/profile" || pathname === "/profile/";
 
-  const loggedInUser = useSelector((state: RootState) => state.loggedInUser);
+  const loggedInUser = useSelector((state: RootState) => state.auth.user);
 
-  const loggedInUserId = loggedInUser._id;
+  const loggedInUserId = loggedInUser?._id;
 
   // const mockProfileData = {
   //   id: "user-456",
@@ -70,11 +71,8 @@ const UserProfilePage = () => {
     const fetchProfile = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get<IFetchProfileResponse>(
-          `${import.meta.env.VITE_BACKEND_URL}/profile/view/${
-            isOwnProfile ? loggedInUserId : userId
-          }`,
-          { withCredentials: true }
+        const res = await api.get<IFetchProfileResponse>(
+          `/profile/view/${isOwnProfile ? loggedInUserId : userId}`,
         );
 
         if (!res.data.user) {
@@ -137,7 +135,7 @@ const UserProfilePage = () => {
 
   const handleConnectionAction = async (
     action: ConnectionActionType,
-    userId: string
+    userId: string,
   ) => {
     if (!profileData) return;
 
@@ -150,17 +148,16 @@ const UserProfilePage = () => {
             ...prev,
             connectionStatus: optimisticStatusMap[action],
           }
-        : prev
+        : prev,
     );
 
     const { method, endpoint } = ACTION_CONFIG[action];
 
     try {
-      const res = await axios({
+      const res = await api({
         method,
-        url: `${import.meta.env.VITE_BACKEND_URL}${endpoint(userId)}`,
+        url: endpoint(userId),
         data: { status: ACTION_CONFIG[action].status },
-        withCredentials: true,
       });
 
       console.log(res.data);
@@ -172,13 +169,13 @@ const UserProfilePage = () => {
               ...prev,
               connectionStatus: previousStatus,
             }
-          : prev
+          : prev,
       );
 
       const axiosError = error as AxiosError<{ message?: string }>;
       console.error(
         "Connection action failed:",
-        axiosError.response?.data?.message || axiosError.message
+        axiosError.response?.data?.message || axiosError.message,
       );
 
       // toast / alert

@@ -16,8 +16,7 @@ declare global {
 const userRouter = express.Router();
 
 // Get all the pending connections of the loggedIn user. (status interested)
-userRouter.get(
-  "/user/requests/received",
+userRouter.get("/requests/received",
   async (req: Request, res: Response) => {
     try {
       const loggedInUserId = req.user;
@@ -70,7 +69,7 @@ userRouter.get(
 );
 
 // Get all connections of the loggedIn user. (status accepted)
-userRouter.get("/user/connections", async (req: Request, res: Response) => {
+userRouter.get("/connections", async (req: Request, res: Response) => {
   try {
     const loggedInUserId = req.user;
 
@@ -116,7 +115,7 @@ userRouter.get("/user/connections", async (req: Request, res: Response) => {
 });
 
 // Search users among connections with whom chat doesn't exist (to start new chat with them)
-userRouter.get("/users/search", async (req: Request, res: Response) => {
+userRouter.get("/search", async (req: Request, res: Response) => {
   try {
     const loggedInUserId = req.user;
     const query = req.query.query?.toString().trim().toLowerCase();
@@ -206,7 +205,7 @@ userRouter.get("/users/search", async (req: Request, res: Response) => {
 });
 
 // Get any user by userId
-userRouter.get("/user/:userId", async (req: Request, res: Response) => {
+userRouter.get("/:userId", async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId;
 

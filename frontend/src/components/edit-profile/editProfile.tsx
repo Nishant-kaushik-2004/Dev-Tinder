@@ -5,8 +5,9 @@ import axios from "axios";
 import ProfileCardPreview from "./profileCardPreview";
 import Toast from "../toast";
 import { DEVELOPER_SKILLS } from "../../data/mockDevelopers";
-import { setUser } from "../../store/userSlice";
+import { updateUser } from "../../store/authSlice";
 import { RootState } from "../../store/store";
+import api from "../../utils/api";
 
 export interface formDataType {
   firstName: string;
@@ -19,7 +20,7 @@ export interface formDataType {
 }
 
 const EditProfilePage = () => {
-  const user = useSelector((state: RootState) => state.loggedInUser);
+  const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState<formDataType>({
@@ -36,7 +37,7 @@ const EditProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [toast, setToast] = useState<{ message: string; type: string } | null>(
-    null
+    null,
   );
   const [skillInput, setSkillInput] = useState("");
   const [skillSuggestions, setSkillSuggestions] = useState<string[]>([]);
@@ -65,15 +66,15 @@ const EditProfilePage = () => {
     const hasFormChanges =
       JSON.stringify(formData) !==
       JSON.stringify({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        age: user.age || "",
-        gender: user.gender || "",
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        age: user?.age || "",
+        gender: user?.gender || "",
         photoUrl:
-          user.photoUrl ||
+          user?.photoUrl ||
           "https://geographyandyou.com/images/user-profile.png",
-        about: user.about || "",
-        skills: user.skills || [],
+        about: user?.about || "",
+        skills: user?.skills || [],
       });
     setHasChanges(hasFormChanges);
   }, [formData]);
@@ -105,7 +106,7 @@ const EditProfilePage = () => {
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     let processedValue = sanitizeInput(value);
@@ -137,7 +138,7 @@ const EditProfilePage = () => {
   const handleInputBlur = (
     e: React.FocusEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
 
@@ -164,7 +165,7 @@ const EditProfilePage = () => {
 
   // Handle skill input
   const handleSkillInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ): void => {
     const value = sanitizeInput(e.target.value) as string;
     setSkillInput(value);
@@ -173,7 +174,7 @@ const EditProfilePage = () => {
       const suggestions: string[] = DEVELOPER_SKILLS.filter(
         (skill: string) =>
           skill.toLowerCase().includes(value.toLowerCase()) &&
-          !formData.skills.includes(skill)
+          !formData.skills.includes(skill),
       ).slice(0, 5);
       setSkillSuggestions(suggestions);
       setShowSkillSuggestions(true);
@@ -289,18 +290,12 @@ const EditProfilePage = () => {
       Object.keys(payload).forEach(
         (key) =>
           payload[key as keyof PayloadType] === undefined &&
-          delete payload[key as keyof PayloadType]
+          delete payload[key as keyof PayloadType],
       );
 
-      const response = await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/profile/edit`,
-        payload,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await api.patch("/profile/edit", payload);
 
-      dispatch(setUser(response.data.user));
+      dispatch(updateUser(response.data.user));
 
       setToast({
         message: "Profile updated successfully!",

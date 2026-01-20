@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./messageBubble";
 import { useNavigate, useOutletContext, useParams } from "react-router";
 import ChatWindowFallback from "./chatWindowFallback";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { addNewChat, updateChat } from "../../store/chatsSlice";
 import getSocket from "../../utils/socket";
@@ -15,7 +14,7 @@ import {
 } from "../../utils/types";
 import { RootState } from "../../store/store";
 import ChatWindowSkeleton from "./chatWindowSkeLoader";
-import InvalidChatFallback from "./InvalidChatFallback";
+import api from "../../utils/api";
 
 interface ChatWindowProps {
   activeChat: Chat;
@@ -59,10 +58,7 @@ const ChatWindow = () => {
     const fetchUserInfo = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/user/${userId}`,
-          { withCredentials: true },
-        );
+        const res = await api.get(`/user/${userId}`);
         if (!res.data.user) {
           throw new Error("User not found");
         }
@@ -101,14 +97,11 @@ const ChatWindow = () => {
     async function fetchMessages() {
       setIsLoading(true);
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/messages/${chatId}`,
-          { withCredentials: true },
-        );
+        const res = await api.get(`/messages/${chatId}`);
         if (!res.data.messages) {
           throw new Error("No chat messages found");
         }
-        console.log(res.data);
+
         setChatMessages(res.data.messages);
       } catch (error) {
         console.error("Error fetching chat messages:", error);

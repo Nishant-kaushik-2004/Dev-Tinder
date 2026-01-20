@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { Chat, Message } from "../models/chatModel.js";
 import mongoose from "mongoose";
 import { User } from "../models/userModel.js";
+import { allowedOrigins } from "../app.js";
 
 interface ServerToClientEvents {
   messageReceived: (data: {
@@ -62,11 +63,6 @@ const getSecretRoomId = (userId: String, targetUserId: String) => {
   return crypto.createHash("sha256").update(roomId).digest("hex");
 };
 
-// export const allowedOrigins = [
-//   process.env.FRONTEND_URL,
-//   "http://localhost:5173",
-// ];
-
 const InitializeSocket = (server: HttpServer) => {
   const io = new Server<
     ClientToServerEvents,
@@ -76,7 +72,15 @@ const InitializeSocket = (server: HttpServer) => {
   >(server, {
     // origin: process.env.FRONTEND_URL || "http://localhost:5173",
     cors: {
-      origin: process.env.FRONTEND_URL!,
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // mobile / curl
+
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        return callback(new Error("Not allowed by CORS"));
+      },
       credentials: true,
     },
   });

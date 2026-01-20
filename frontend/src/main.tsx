@@ -4,6 +4,7 @@ import App from "./App.js";
 import { Provider } from "react-redux";
 import store from "./store/store.js";
 import "./App.css";
+import { AuthBootstrap } from "./components/auth/AuthBootstrap.js";
 
 const rootElement = document.getElementById("root");
 
@@ -14,7 +15,9 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <StrictMode>
     <Provider store={store}>
-      <App />
+      <AuthBootstrap>
+        <App />
+      </AuthBootstrap>
     </Provider>
-  </StrictMode>
+  </StrictMode>,
 );

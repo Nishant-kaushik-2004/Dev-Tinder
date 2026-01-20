@@ -18,8 +18,7 @@ const ensureNotSelf = (a: string, b: string) => {
   if (a === b) throw new Error("Cannot perform action on yourself");
 };
 
-requestRouter.post(
-  "/request/send/:toUserId",
+requestRouter.post("/send/:toUserId",
   async (req: Request, res: Response) => {
     try {
       const fromUserId = req.user;
@@ -95,8 +94,7 @@ requestRouter.post(
 // • Match request list page, Matches list Page
 // • Admin tools
 // • Notifications
-requestRouter.patch(
-  "/request/review/:requestId",
+requestRouter.patch("/review/:requestId",
   async (req: Request, res: Response) => {
     try {
       const toUserId = req.user;
@@ -172,8 +170,7 @@ requestRouter.patch(
 );
 
 // Review connection request (accept/reject) for a specific fromUserId
-requestRouter.patch(
-  "/requests/review/:fromUserId",
+requestRouter.patch("/review/:fromUserId",
   async (req: Request, res: Response) => {
     try {
       const toUserId = req.user;
@@ -221,8 +218,7 @@ requestRouter.patch(
 );
 
 // Cancel connection request sent to a specific toUserId by loggedIn user
-requestRouter.delete(
-  "/requests/cancel/:toUserId",
+requestRouter.delete( "/cancel/:toUserId",
   async (req: Request, res: Response) => {
     try {
       const fromUserId = req.user;

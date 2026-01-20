@@ -14,16 +14,12 @@ import { createServer } from "node:http";
 import InitializeSocket from "./utils/socket.js";
 import chatRouter from "./routes/chats.js";
 import feedRouter from "./routes/feed.js";
+import messageRouter from "./routes/messages.js";
 
 const app = express();
 const server = createServer(app);
 
 const PORT = process.env.PORT || 3333;
-
-// var corsOptions = {
-//   origin: 'http://localhost:5173',
-//   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-// }
 
 // This tells Express: “The original request was HTTPS, even if I see HTTP internally.”
 app.set("trust proxy", true);
@@ -32,10 +28,10 @@ app.set("trust proxy", true);
 // 	•	Sessions break ❌
 // 	•	Auth breaks on refresh ❌
 
-const allowedOrigins = [
+export const allowedOrigins = [
   process.env.FRONTEND_URL, // production (Vercel)
   "http://localhost:5173", // local dev
-];
+].filter(Boolean) as string[];
 
 app.use(
   cors({
@@ -56,21 +52,25 @@ app.use(
 InitializeSocket(server);
 
 // Middleware to parse JSON bodies
-app.use(express.json()); // works as middleware for every route as it parses the payload data to json format.
-app.use(cookieParser()); // works as middleware for every route as it parses the cookies present in the request.
+app.use(express.json()); // It parses the payload data to json format.
+app.use(cookieParser()); // It parses the cookies present in the request.
 
-// Send the request from wherever it got the first
-app.use(
-  authRouter,
-  userAuth,
-  feedRouter,
-  profileRouter,
-  requestRouter,
-  userRouter,
-  chatRouter,
-); // this is app level Middleware, Here userAuth is applied to all routes declared after it in the middleware chain.
-// 🔄 Option 1: App-Level Middleware in app.use -> Used when most routes require auth.
-// 🎯 Option 2: Router-Level Middleware ->  Use when only specific route groups need protection.
+// Public routes (NO auth)
+app.use("/auth", authRouter);
+
+// Auth middleware (everything below is protected)
+app.use(userAuth);
+
+// Protected routes
+app.use("/feed", feedRouter);
+app.use("/profile", profileRouter);
+app.use("/requests", requestRouter);
+app.use("/users", userRouter);
+app.use("/chats", chatRouter);
+app.use("/messages", messageRouter);
+
+// Option 1: App-Level Middleware in app.use -> Used when most routes require auth.
+// Option 2: Router-Level Middleware ->  Use when only specific route groups need protection.
 
 connectDb()
   .then(() => {

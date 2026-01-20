@@ -19,8 +19,6 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
 
     const inValidationMsg = signupDataValidation(signupInput);
 
-    console.log("Signup validation message:", inValidationMsg);
-
     if (inValidationMsg) throw new Error(inValidationMsg);
 
     const user = await User.findOne({ email });
@@ -60,11 +58,17 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
       // secure: process.env.NODE_ENV === "production",
     });
 
-    res.status(201).json({ message: "Signup successfull", user: newUser });
+    const { password: _, ...userWithoutPassword } = newUser.toObject();
+
+    res
+      .status(201)
+      .json({ message: "Signup successfull", user: userWithoutPassword });
+    return;
   } catch (err) {
     const errorMsg =
       err instanceof Error ? err.message : "Something went wrong";
     res.status(400).json({ message: "ERROR: " + errorMsg });
+    return;
   }
 });
 
@@ -77,15 +81,12 @@ authRouter.post("/login", async (req: Request, res: Response) => {
 
     console.log("Login validation message:", inValidationMsg);
 
-    if (inValidationMsg) throw new Error(inValidationMsg);
-
     // 🚨 Do not forget to select password field which is excluded by default 🚨
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) throw new Error("Invalid credentials");
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    console.log(isPasswordCorrect);
 
     if (!isPasswordCorrect) throw new Error("Invalid credentials");
 
@@ -108,11 +109,17 @@ authRouter.post("/login", async (req: Request, res: Response) => {
       // secure: process.env.NODE_ENV === "production",
     });
 
-    res.status(200).json({ message: "Logged in successfully", user });
+    const { password: _, ...userWithoutPassword } = user.toObject();
+
+    res
+      .status(200)
+      .json({ message: "Logged in successfully", user: userWithoutPassword });
+    return;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
     res.status(400).json({ message: "ERROR: " + errorMessage });
+    return;
   }
 });
 
@@ -127,10 +134,12 @@ authRouter.post("/logout", (req: Request, res: Response) => {
     });
     console.log("Logged out successfully");
     res.status(200).json({ message: "Logged out successfully" });
+    return;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
     res.status(401).json({ message: "ERROR: " + errorMessage });
+    return;
   }
 });
 

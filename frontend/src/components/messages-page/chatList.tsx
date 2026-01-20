@@ -8,6 +8,7 @@ import { Chat, IUserInfo } from "../../utils/types";
 import { RootState } from "../../store/store";
 import axios from "axios";
 import { useNavigate } from "react-router";
+import api from "../../utils/api";
 
 interface ChatListProps {
   activeChat: Chat | null;
@@ -42,13 +43,9 @@ const ChatList: React.FC<ChatListProps> = ({
       const excludeIds = chats.map((c) => c.participantInfo._id).join(",");
 
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/users/search`,
-          {
-            params: { query: searchValue, excludeIds },
-            withCredentials: true,
-          }
-        );
+        const res = await api.get("/search", {
+          params: { query: searchValue, excludeIds },
+        });
 
         if (!res.data.users) throw new Error("No users found");
 
@@ -125,7 +122,7 @@ const ChatList: React.FC<ChatListProps> = ({
                   onChatSelect(
                     // chatId: "", // Temporary chatId until first message is sent and real chatId is received from backend
                     undefined,
-                    user
+                    user,
                     // isTemporary: true, // No need to set this flag as we will create temp chat in chatWindow itself using targetUserId, so that url sharing works seamlessly
                   )
                 }

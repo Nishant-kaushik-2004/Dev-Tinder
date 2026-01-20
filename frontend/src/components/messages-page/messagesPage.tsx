@@ -9,6 +9,7 @@ import axios from "axios";
 import { Chat, IUser } from "../../utils/types";
 import { RootState } from "../../store/store";
 import getSocket from "../../utils/socket";
+import api from "../../utils/api";
 
 // Main Messages Page Component
 const MessagesPage = () => {
@@ -27,7 +28,7 @@ const MessagesPage = () => {
   const { chatId } = useParams();
   const { userId } = useParams();
 
-  const loggedInUser = useSelector((store: RootState) => store.loggedInUser);
+  const loggedInUser = useSelector((store: RootState) => store.auth.user);
   const chats = useSelector((store: RootState) => store.chats);
 
   // Set active chat when chatId or userId param changes
@@ -57,17 +58,11 @@ const MessagesPage = () => {
     async function fetchChats() {
       setIsLoading(true);
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/chats?userId=${
-            loggedInUser._id
-          }`,
-          { withCredentials: true }
-        );
+        const res = await api.get(`/chats?userId=${loggedInUser?._id}`);
         if (!res.data.chats) {
           throw new Error("No chats found");
         }
-        console.log(res.data.chats);
-        // setChats(dummyChats);
+
         dispatch(setChats(res.data.chats));
       } catch (error) {
         console.error("Error fetching chats:", error);
@@ -76,18 +71,18 @@ const MessagesPage = () => {
       }
     }
     fetchChats();
-  }, [loggedInUser._id, dispatch]);
+  }, [loggedInUser?._id, dispatch]);
 
   // Setup socket connection for real-time messaging
   useEffect(() => {
     const socket = socketRef.current;
 
-    if (!loggedInUser._id || !targetUserId) return;
+    if (!loggedInUser?._id || !targetUserId) return;
 
     const joinRoom = () => {
       // Join new room
       socket.emit("joinChat", {
-        senderId: loggedInUser._id,
+        senderId: loggedInUser?._id,
         receiverId: targetUserId,
       });
     }; // NOTE: Rooms are a server-only concept (i.e. the client does not have access to the list of rooms it has joined).
@@ -102,11 +97,11 @@ const MessagesPage = () => {
     // cleanup only leaves room, does NOT disconnect global socket
     return () => {
       socket.emit("leaveChat", {
-        senderId: loggedInUser._id,
+        senderId: loggedInUser?._id,
         receiverId: targetUserId,
       }); // 🔹 This cleanup function runs in three situations
     }; // 1️⃣ When targetUserId or loggedInUser._id changes, 2️⃣ When the component unmounts, 3️⃣ Before re-running the effect if dependencies change.
-  }, [loggedInUser._id, targetUserId]);
+  }, [loggedInUser?._id, targetUserId]);
 
   // handleResize is NOT called on mount ❌
   // This effect only runs on resize, not on initial render.
@@ -156,7 +151,7 @@ const MessagesPage = () => {
       //   dispatch(markChatAsRead(chat.userId));
       // }
     },
-    [isMobile, navigate, activeChat]
+    [isMobile, navigate, activeChat],
   );
 
   const handleBack = () => {
@@ -193,8 +188,8 @@ const MessagesPage = () => {
               ? "w-full"
               : "hidden"
             : showSidebar
-            ? "w-96"
-            : "w-0"
+              ? "w-96"
+              : "w-0"
         } transition-all duration-300 border-r border-base-300 ${
           !isMobile && showSidebar ? "relative" : ""
         }`}

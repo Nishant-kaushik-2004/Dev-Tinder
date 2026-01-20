@@ -10,7 +10,7 @@ export const USER_SAFE_DATA =
   "firstName lastName photoUrl age gender about skills location isFresher experience company jobTitle";
 
 // Get feed for logged in user. (All users except already interacted ones)
-feedRouter.get("/feed", async (req: Request, res: Response) => {
+feedRouter.get("/", async (req: Request, res: Response) => {
   try {
     const loggedInUserId = req.user;
 
@@ -102,7 +102,7 @@ feedRouter.get("/feed", async (req: Request, res: Response) => {
 });
 
 // Get feed stats for logged in user.
-feedRouter.get("/feed/stats", async (req: Request, res: Response) => {
+feedRouter.get("/stats", async (req: Request, res: Response) => {
   try {
     const loggedInUserId = req.user;
 

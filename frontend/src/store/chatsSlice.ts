@@ -20,7 +20,7 @@ const initialState: Chat[] = [];
 // ];
 
 export const chatsSlice = createSlice({
-  name: "chatsSlice",
+  name: "chats",
   initialState,
   reducers: {
     setChats: (_, action) => {

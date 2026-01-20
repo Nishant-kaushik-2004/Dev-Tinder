@@ -1,5 +1,6 @@
-import { X } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 
 interface Notification {
   title: string;
@@ -20,6 +21,7 @@ const NotificationPanel = ({
   notifications,
 }: NotificationPanelProps) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Close on outside click
   useEffect(() => {
@@ -48,9 +50,10 @@ const NotificationPanel = ({
 
   return (
     <div
-      ref={panelRef} // ✅ VERY IMPORTANT
+      ref={panelRef} // Very important for outside click detection
       className="menu bg-base-100 border border-base-300 rounded-box shadow-xl w-64 sm:w-80 p-0 absolute right-0 top-full mt-2 z-[60]"
-      // aria-expanded={isOpen}
+      aria-expanded={isOpen}
+      aria-label="Notification Panel"
     >
       {/* Header */}
       <div className="navbar bg-base-200 rounded-t-box px-4 py-2 border-b border-base-300">
@@ -63,7 +66,7 @@ const NotificationPanel = ({
           <button
             className="btn btn-ghost btn-circle btn-xs hover:bg-base-300"
             onClick={(e) => {
-              e.stopPropagation(); // ✅ ADD THIS
+              e.stopPropagation();
               onClose();
             }}
           >
@@ -104,19 +107,53 @@ const NotificationPanel = ({
             ))}
           </div>
         ) : (
-          <div className="hero py-8">
-            <div className="hero-content text-center">
-              <div>
-                <p className="text-sm text-base-content/60">
-                  No new notifications
-                </p>
+          <div className="py-8 px-4 text-center space-y-4">
+            {/* Icon / visual anchor */}
+            <div className="flex justify-center">
+              <div className="rounded-full bg-base-200 p-3">
+                <Bell className="w-5 h-5 text-base-content/60" />
               </div>
             </div>
+
+            {/* Primary message */}
+            <p className="text-sm font-medium text-base-content">
+              No notifications yet
+            </p>
+
+            {/* Explanation */}
+            <p className="text-xs text-base-content/60 leading-relaxed">
+              When someone sends you a match request or a message, you’ll see it
+              here.
+            </p>
+
+            {/* Example (non-interactive, clearly a preview) */}
+            <div className="mt-3 mx-auto max-w-xs rounded-lg bg-base-200/70 p-3 text-left">
+              <p className="text-[11px] text-base-content/50 mb-1">
+                Example notification
+              </p>
+              <p className="text-sm font-medium text-base-content">
+                Aman sent you a connection request
+              </p>
+              <p className="text-xs text-base-content/60">
+                Start a conversation when you’re ready
+              </p>
+            </div>
+
+            {/* CTA */}
+            <button
+              className="btn btn-primary btn-sm mt-4"
+              onClick={() => {
+                onClose();
+                navigate("/"); // or /feed /explore
+              }}
+            >
+              Explore Developers
+            </button>
           </div>
         )}
       </div>
 
-      {/* Footer (optional) */}
+      {/* Footer */}
       {notifications.length > 0 && <div className="divider my-0"></div>}
       {notifications.length > 0 && (
         <div className="p-2">
@@ -130,41 +167,3 @@ const NotificationPanel = ({
 };
 
 export default NotificationPanel;
-
-// import { X } from "lucide-react";
-
-// // Notification Panel Component
-// const NotificationPanel = ({ isOpen, onClose, notifications }) => {
-//   if (!isOpen) return null;
-
-//   return (
-//     <div className="absolute right-0 mt-14 w-80 bg-base-100 shadow-xl rounded-lg z-50 max-h-96 overflow-y-auto p-2">
-//       <div className="p-4 border-b">
-//         <div className="flex justify-between items-center">
-//           <h3 className="font-semibold">Notifications</h3>
-//           <button className="btn btn-ghost btn-sm" onClick={onClose}>
-//             <X className="w-4 h-4" />
-//           </button>
-//         </div>
-//       </div>
-//       <div className="p-2">
-//         {notifications.length > 0 ? (
-//           notifications.map((n, index) => (
-//             <div key={index} className="alert mb-2">
-//               <div>
-//                 <h4 className="font-medium text-sm">{n.title}</h4>
-//                 <p className="text-xs opacity-70">{n.message}</p>
-//               </div>
-//             </div>
-//           ))
-//         ) : (
-//           <p className="text-center text-sm text-gray-500">
-//             No new notifications
-//           </p>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default NotificationPanel;

@@ -15,8 +15,7 @@ declare global {
   }
 }
 // View profile of logged in user or other users by their userId
-profileRouter.get(
-  "/profile/view/:userId?",
+profileRouter.get("/view/:userId?",
   async (req: Request, res: Response) => {
     // Can also be taken as params like /profile/view/:email, where email can be get by {email} = req.params;
     // taking email as query which will be present in the requested url
@@ -187,7 +186,7 @@ profileRouter.get(
 );
 
 // Edit logged in user's profile
-profileRouter.patch("/profile/edit", async (req, res) => {
+profileRouter.patch("/edit", async (req, res) => {
   try {
     const loggedInUserId = req.user;
 

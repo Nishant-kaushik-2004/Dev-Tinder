@@ -3,20 +3,19 @@ import { Bell, Code } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, NavLink, useLocation, useNavigate } from "react-router";
 import NotificationPanel from "./notificationPanel";
-import { notificationsList } from "../../data/mockDevelopers";
 import DropDownMenu from "./mobileNavigation";
 import ThemeDropdown from "./themeDropdown";
 import ProfileDropdown from "./profileDropdown";
-import axios from "axios";
-import { clearUser } from "../../store/userSlice";
+import { clearUser } from "../../store/authSlice";
 import { RootState } from "../../store/store";
 import { menuRoutes } from "../../data/NavbarData";
+import api from "../../utils/api";
 
 // Navbar Component
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState(notificationsList);
+  const [notifications, setNotifications] = useState([]);
   // const dropdownRef = useRef(null);
 
   const location = useLocation();
@@ -29,17 +28,11 @@ const Navbar = () => {
     setShowNotifications(false);
   }, [location.pathname]);
 
-  const loggedInUser = useSelector((state: RootState) => state.loggedInUser);
+  const loggedInUser = useSelector((state: RootState) => state.auth.user);
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/logout`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
+      await api.post("/auth/logout");
       dispatch(clearUser());
       navigate("/login");
     } catch (error) {
@@ -53,11 +46,7 @@ const Navbar = () => {
   return (
     <div className="navbar bg-base-100 shadow-xl border-b border-base-300 px-4 fixed top-0 z-50">
       <div className="navbar-start">
-        <DropDownMenu
-          isDeviceIndependentVis={false}
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <DropDownMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
         <Link
           to="/"
           className="btn btn-ghost text-xl font-bold text-base-content"
@@ -115,10 +104,7 @@ const Navbar = () => {
           )}
         </div>
 
-        <ProfileDropdown
-          user={loggedInUser}
-          handleLogout={handleLogout}
-        />
+        <ProfileDropdown user={loggedInUser} handleLogout={handleLogout} />
       </div>
     </div>
   );

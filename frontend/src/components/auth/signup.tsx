@@ -1,20 +1,8 @@
 import { useState, useEffect } from "react";
-import { Eye, EyeOff, Sun, Moon, Loader2 } from "lucide-react";
-import axios from "axios";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
-import { setUser } from "../store/userSlice";
-
-/**
- * DevTinder Signup Page Component
- *
- * Security Best Practices Implemented:
- * - Input validation and sanitization
- * - Password visibility toggle
- * - Password confirmation matching
- * - CSRF protection ready
- * - Rate limiting ready
- */
+import api from "../../utils/api";
 
 const DevTinderSignup = () => {
   // Form state
@@ -30,8 +18,11 @@ const DevTinderSignup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [toast, setToast] = useState(null);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const [theme, setTheme] = useState("light");
 
   const navigate = useNavigate();
@@ -48,7 +39,7 @@ const DevTinderSignup = () => {
   /**
    * Email validation using RFC 5322 compliant regex
    */
-  const validateEmail = (email) => {
+  const validateEmail = (email: string) => {
     const emailRegex =
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return emailRegex.test(email);
@@ -57,28 +48,28 @@ const DevTinderSignup = () => {
   /**
    * Password validation
    */
-  const validatePassword = (password) => {
+  const validatePassword = (password: string) => {
     return password.length >= 8;
   };
 
   /**
    * Name validation
    */
-  const validateName = (name) => {
+  const validateName = (name: string) => {
     return name.trim().length >= 2 && /^[a-zA-Z\s]+$/.test(name);
   };
 
   /**
    * Input sanitization
    */
-  const sanitizeInput = (input) => {
+  const sanitizeInput = (input: string) => {
     return input.trim().replace(/[<>]/g, "");
   };
 
   /**
    * Handle input changes with real-time validation
    */
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const sanitizedValue = sanitizeInput(value);
 
@@ -100,7 +91,7 @@ const DevTinderSignup = () => {
    * Validate form before submission
    */
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.firstName) {
       newErrors.firstName = "First name is required";
@@ -147,28 +138,20 @@ const DevTinderSignup = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/signup`,
-        {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-        },
-        { withCredentials: true }
-      );
-
-      const { user, message } = response.data;
-      
-      dispatch(setUser(user));
+      const response = await api.post("/auth/signup", {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
 
       setToast({
-        message: message || "Account created successfully!",
+        message: response.data.message || "Account created successfully!",
         type: "success",
       });
 
-      navigate("/");
-    } catch (error) {
+      navigate("/profile/edit", { replace: true });
+    } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Signup failed. Please try again.";
 
@@ -181,29 +164,15 @@ const DevTinderSignup = () => {
     }
   };
 
-  /**
-   * Toggle theme between light and dark
-   */
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-  };
-
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
-      {/* Theme Toggle */}
-      <div className="absolute top-4 right-4">
-        <button
-          onClick={toggleTheme}
-          className="btn btn-ghost btn-circle"
-          aria-label="Toggle theme"
-        >
-          {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
-      </div>
-
       {/* Signup Card */}
-      <div className="card w-full max-w-md bg-base-100 shadow-xl">
+      <div
+        className="card w-full max-w-md bg-base-100 shadow-xl"
+        onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+          if (e.key === "Enter") handleSubmit();
+        }}
+      >
         <div className="card-body">
           {/* Header */}
           <div className="text-center mb-6">
@@ -236,7 +205,7 @@ const DevTinderSignup = () => {
                   disabled={isLoading}
                 />
                 {errors.firstName && (
-                  <label className="">
+                  <label className="label" id="firstName-error">
                     <span
                       className="label-text-alt text-error text-xs"
                       role="alert"
@@ -246,7 +215,6 @@ const DevTinderSignup = () => {
                   </label>
                 )}
               </div>
-
               {/* Last Name */}
               <div className="form-control flex-1">
                 <label className="label">
@@ -264,7 +232,7 @@ const DevTinderSignup = () => {
                   disabled={isLoading}
                 />
                 {errors.lastName && (
-                  <label className="">
+                  <label className="label" id="lastName-error">
                     <span
                       className="label-text-alt text-error text-xs"
                       role="alert"
@@ -293,7 +261,7 @@ const DevTinderSignup = () => {
                 disabled={isLoading}
               />
               {errors.email && (
-                <label className="label">
+                <label className="label" id="email-error">
                   <span className="label-text-alt text-error" role="alert">
                     {errors.email}
                   </span>
@@ -329,7 +297,7 @@ const DevTinderSignup = () => {
                 </button>
               </div>
               {errors.password && (
-                <label className="label">
+                <label className="label" id="password-error">
                   <span className="label-text-alt text-error" role="alert">
                     {errors.password}
                   </span>
@@ -371,7 +339,7 @@ const DevTinderSignup = () => {
                 </button>
               </div>
               {errors.confirmPassword && (
-                <label className="label">
+                <label className="label" id="confirmPassword-error">
                   <span className="label-text-alt text-error" role="alert">
                     {errors.confirmPassword}
                   </span>
@@ -422,7 +390,15 @@ const DevTinderSignup = () => {
 };
 
 // Toast notification component
-const Toast = ({ message, type, onClose }) => {
+const Toast = ({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: "success" | "error";
+  onClose: () => void;
+}) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
