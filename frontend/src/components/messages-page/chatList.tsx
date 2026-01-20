@@ -6,7 +6,6 @@ import DropDownMenu from "../navbar/mobileNavigation";
 import { useSelector } from "react-redux";
 import { Chat, IUserInfo } from "../../utils/types";
 import { RootState } from "../../store/store";
-import axios from "axios";
 import { useNavigate } from "react-router";
 import api from "../../utils/api";
 
@@ -43,7 +42,7 @@ const ChatList: React.FC<ChatListProps> = ({
       const excludeIds = chats.map((c) => c.participantInfo._id).join(",");
 
       try {
-        const res = await api.get("/search", {
+        const res = await api.get("/user/search", {
           params: { query: searchValue, excludeIds },
         });
 
