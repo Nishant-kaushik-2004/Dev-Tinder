@@ -65,7 +65,7 @@ app.use(userAuth);
 app.use("/feed", feedRouter);
 app.use("/profile", profileRouter);
 app.use("/requests", requestRouter);
-app.use("/users", userRouter);
+app.use("/user", userRouter);
 app.use("/chats", chatRouter);
 app.use("/messages", messageRouter);
 
