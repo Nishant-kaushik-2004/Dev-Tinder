@@ -13,7 +13,7 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
   try {
     const signupInput = req.body;
 
-    console.log("Signup input:", signupInput);
+    console.log("Signup input:", signupInput?.email);
 
     const { email, password } = signupInput;
 
@@ -75,7 +75,7 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
 authRouter.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    console.log(req.body);
+    console.log(req.body.email);
 
     const inValidationMsg = loginDataValidation({ email, password });
 

@@ -28,7 +28,9 @@ const Navbar = () => {
     setShowNotifications(false);
   }, [location.pathname]);
 
-  const loggedInUser = useSelector((state: RootState) => state.auth.user);
+  const { authChecked, user: loggedInUser } = useSelector(
+    (state: RootState) => state.auth,
+  );
 
   const handleLogout = async () => {
     try {

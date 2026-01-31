@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Save, User, Camera, Edit } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
 import ProfileCardPreview from "./profileCardPreview";
 import Toast from "../toast";
 import { DEVELOPER_SKILLS } from "../../data/mockDevelopers";

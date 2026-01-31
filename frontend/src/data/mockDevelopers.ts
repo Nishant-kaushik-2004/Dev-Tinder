@@ -43,33 +43,12 @@ export const DEVELOPER_SKILLS = [
   "Game Development",
 ];
 
-export const notificationsList = [
-  { title: "New Match!", message: "You matched with Sarah Chen" },
-  { title: "Message Received", message: "Alex sent you a message" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-  { title: "Profile View", message: "Emily viewed your profile" },
-];
-
 export const developers = [
   {
     _id: "1",
     firstName: "Harry",
     lastName: "Brook",
-    email: "sarah.chen@email.com",
+    email: "harry.brook@email.com",
     age: 26,
     gender: "male",
     photoUrl:

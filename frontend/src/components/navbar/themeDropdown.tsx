@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { themeChange } from "theme-change";
-import { themes } from "../../data/themeOptions";
+import { Ithemes, themes } from "../../data/NavbarData";
 
 export default function ThemeDropdown() {
   const [currentTheme, setCurrentTheme] = useState("light");
@@ -13,8 +13,8 @@ export default function ThemeDropdown() {
     setCurrentTheme(savedTheme);
   }, []);
 
-  const handleThemeChange = (theme) => {
-    setCurrentTheme(theme);
+  const handleThemeChange = (theme: Ithemes) => {
+    setCurrentTheme(theme.value);
   };
 
   const currentThemeLabel =
@@ -64,13 +64,13 @@ export default function ThemeDropdown() {
 
       <ul
         tabIndex={0}
-        className="dropdown-content z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-48 md:w-64 max-h-80 overflow-y-auto custom-scrollbar"
+        className="dropdown-content z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-48 md:w-64 max-h-80 overflow-y-auto custom-scrollbar mt-1 md:mt-2"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "oklch(var(--bc) / 0.2) transparent",
         }}
       >
-        {themes.map((theme) => (
+        {themes.map((theme: Ithemes) => (
           <li key={theme.label} className="my-1">
             <div
               data-theme={theme.value}
@@ -80,7 +80,7 @@ export default function ThemeDropdown() {
             >
               <button
                 data-set-theme={theme.value}
-                onClick={() => handleThemeChange(theme.value)}
+                onClick={() => handleThemeChange(theme)}
                 className="bg-base-100 text-base-content w-full cursor-pointer font-sans hover:bg-base-200 transition-colors duration-200"
               >
                 <div className="grid grid-cols-5 grid-rows-3">

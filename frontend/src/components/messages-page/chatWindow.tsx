@@ -202,7 +202,7 @@ const ChatWindow = () => {
       // Removes the "handleIncoming" listener from the listener array for the event named messageReceived.
       socket.off("messageReceived", handleIncoming);
     };
-  }, [chatId, chats, tempChat, activeChat, loggedInUser._id]);
+  }, [chatId, chats, tempChat, activeChat, loggedInUser?._id]);
 
   // When user searches for a new user to start chat with, we need to create a temporary chat object with isTemp = true; and add it to chats list in redux store and navigate user to the chat window of the new user but when he clicks back button then remove that temporary user from store chats.
 

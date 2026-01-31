@@ -3,37 +3,34 @@ import { Request, Response, NextFunction } from "express";
 
 const userAuth = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies["token"]; //const token = req.cookies.token;
+    const token = req.cookies?.token; //const token = req.cookies["token"];
     // Both are valid syntax.
 
     if (!token) {
       res.status(401).json({
-        message: "You are Unauthorised, Please login first!",
+        message: "Unauthorized: token missing",
       });
       return;
     }
 
-    const decodedObject = jwt.verify(token, process.env.SECRETKEY!);
+    const decoded = jwt.verify(token, process.env.SECRETKEY!);
 
-    if (!decodedObject || typeof decodedObject !== "object") {
-      throw new Error("Invalid token payload");
-    }
-
-    if (!decodedObject.loggedInUserId) {
+    if (typeof decoded !== "object" || !("loggedInUserId" in decoded)) {
       res.status(401).json({
-        message: "You are Unauthorised, Please login first!",
+        message: "Unauthorized: invalid token payload",
       });
       return;
     }
 
-    req.user = decodedObject.loggedInUserId;
+    req.user = decoded.loggedInUserId as string;
 
     next();
   } catch (error) {
-    console.error("Invalid JSON string:", error);
+    // console.error("Invalid JSON string:", error);
     res
-      .status(400)
+      .status(401)
       .json({ message: "ERROR: " + "Invalid Token! Please login again." });
+    return;
   }
 };
 

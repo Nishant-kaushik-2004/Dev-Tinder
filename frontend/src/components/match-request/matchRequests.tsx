@@ -5,7 +5,14 @@ import RequestCardSkeleton from "./RequestCardSkeleton";
 import EmptyState from "./EmptyRequestsState";
 import RequestCard from "./RequestCard";
 import axios from "axios";
-import { IMatchRequestResponse, IRequest } from "../../utils/types";
+import {
+  IMatchRequestResponse,
+  IRequest,
+  IReviewRequestResponse,
+} from "../../utils/types";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import api from "../../utils/api";
 
 const MatchRequests = () => {
   const [requests, setRequests] = useState<IRequest[]>([]);
@@ -14,13 +21,17 @@ const MatchRequests = () => {
 
   const navigate = useNavigate();
 
+  const { authChecked, user } = useSelector((state: RootState) => state.auth);
+
   useEffect(() => {
+    if (!authChecked || !user) return;
+
     const fetchRequests = async () => {
       setIsLoading(true);
       try {
         const res = await axios.get<IMatchRequestResponse>(
           `${import.meta.env.VITE_BACKEND_URL}/user/requests/received`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         if (!res.data.requests) throw new Error("No match requests data found");
@@ -33,13 +44,15 @@ const MatchRequests = () => {
     };
 
     fetchRequests();
-  }, []);
+  }, [authChecked, user]);
 
   // Handle Accept/Reject request.
   const handleRequest = async (
     requestId: string,
-    requestStatus: "accepted" | "rejected"
+    requestStatus: "accepted" | "rejected",
   ) => {
+    if (!authChecked || !user) return;
+
     setProcessingIds((prev) => new Set([...prev, requestId]));
 
     const currRequest = requests.find((req) => req._id === requestId);
@@ -61,32 +74,25 @@ const MatchRequests = () => {
       setRequests((prev) => prev.filter((req) => req._id !== requestId));
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log(currRequest);
-      // const res = await axios.patch<IReviewRequestResponse>(
-      //   `${
-      //     import.meta.env.VITE_BACKEND_URL
-      //   }/request/review/${requestStatus}/${requestId}`,
-      //   {},
-      //   { withCredentials: true }
-      // ); // What it does
-      // // 	•	Updates an existing request’s status
-      // // 	•	Partial update (only status changes)
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      // console.log(currRequest);
 
-      // // ✅ Best HTTP method: PATCH
-      // // Why
-      // // 	•	We are modifying part of an existing resource
-      // // 	•	PATCH is ideal for status transitions
+      const res = await api.patch<IReviewRequestResponse>(
+        `/request/review/${requestStatus}/${requestId}`,
+      );
+      // Why Patch?
+      // 	•	Updates an existing request’s status
+      // 	•	We are modifying part of an existing resource
 
-      // if (!res.data.connRequest)
-      //   throw new Error("No updated connection request data found");
+      if (!res.data.connRequest)
+        throw new Error("No updated connection request data found");
 
-      // console.log(`Request ${requestAction}:`, res.data.connRequest);
+      console.log(`Request ${requestAction}:`, res.data.connRequest);
     } catch (error) {
       console.error(`Error ${requestAction.toLowerCase()} request:`, error);
       // Revert optimistic update on error
       setRequests((prev) => [...prev, currRequest]);
-      // We might want to refetch data or show error message
+      // In future, we might want to refetch data or show error message
     } finally {
       setProcessingIds((prev) => {
         const newSet = new Set(prev);
@@ -98,16 +104,18 @@ const MatchRequests = () => {
 
   // Handle discover click
   const handleDiscoverClick = () => {
-    console.log("Navigate to discover page");
-    // In real app: navigate('/discover');
     navigate("/");
   };
 
   // Handle back navigation (only for mobile)
   const handleBackClick = () => {
-    console.log("Navigate back");
     navigate(-1);
-    // In real app: navigate(-1) or navigate('/matches');
+    // navigate(-1) or navigate('/matches');
+  };
+
+  // Handle request card click
+  const handleRequestCardClick = (userId: string) => {
+    navigate(`/user/${userId}`);
   };
 
   return (
@@ -153,7 +161,7 @@ const MatchRequests = () => {
         {isLoading ? (
           // Skeleton Loading State
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {[1, 2, 3, 4].map((i) => (
               <RequestCardSkeleton key={i} />
             ))}
           </div>
@@ -171,6 +179,7 @@ const MatchRequests = () => {
                   animationFillMode: "both",
                 }}
                 className="animate-fade-in-up"
+                onClick={() => handleRequestCardClick(request.fromUser._id)}
               >
                 <RequestCard
                   request={request}

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router";
 import { Code, Settings, LogOut, User, Edit, User2 } from "lucide-react";
-import { IUser } from "../../utils/types";
+import { IUserInfo } from "../../utils/types";
 
 interface ProfileDropdownProps {
-  user: IUser;
+  user: IUserInfo | null;
   handleLogout: () => void;
 }
 
@@ -81,7 +81,7 @@ const ProfileDropdown = ({
           <img
             alt="Profile"
             src={
-              user.photoUrl ||
+              user?.photoUrl ||
               "https://geographyandyou.com/images/user-profile.png"
             }
             className="rounded-full object-cover w-full h-full"

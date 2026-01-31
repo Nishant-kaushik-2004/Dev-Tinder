@@ -16,8 +16,10 @@ import StatsCardsSkeleton from "./StatsCardsSkeleton";
 import DeveloperCardSkeleton from "./DeveloperCardSkeleton";
 import NoDevelopersFallback from "./NoDevelopersFallback";
 import StatsCard from "./StatCard";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 
-// Main devTinder App Component
+//💡🚀 Pages may render early, but data fetching waits until authChecked === true and user !== null.
 const Feed = () => {
   const [currentDeveloper, setCurrentDeveloper] = useState(0);
   const [developers, setDevelopers] = useState<IUserInfo[] | null>(null);
@@ -28,6 +30,8 @@ const Feed = () => {
   const [draftFilters, setDraftFilters] = useState<IFilter>({});
   const [appliedFilters, setAppliedFilters] = useState<IFilter>({});
   const [page, setPage] = useState(1);
+
+  const { authChecked, user } = useSelector((state: RootState) => state.auth);
 
   const fetchDevelopers = async () => {
     setIsDevelopersLoading(true);
@@ -64,10 +68,14 @@ const Feed = () => {
 
   // Fetch developers on component mount
   useEffect(() => {
+    if (!authChecked || !user) return;
+
     fetchDevelopers();
-  }, [appliedFilters, page]);
+  }, [authChecked, user, appliedFilters, page]);
 
   useEffect(() => {
+    if (!authChecked || !user) return;
+    
     const fetchProfileStats = async () => {
       setIsStatLoading(true);
       try {
@@ -92,7 +100,7 @@ const Feed = () => {
     };
 
     fetchProfileStats();
-  }, []);
+  }, [authChecked, user]);
 
   const handleApplyFilters = () => {
     setPage(1); // reset pagination

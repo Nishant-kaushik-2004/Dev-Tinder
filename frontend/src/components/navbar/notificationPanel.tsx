@@ -46,6 +46,12 @@ const NotificationPanel = ({
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  const exampleNotification = {
+    title: "Welcome to devTinder!",
+    message: " Start connecting with developers now.",
+    time: "Just now",
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -107,7 +113,7 @@ const NotificationPanel = ({
             ))}
           </div>
         ) : (
-          <div className="py-8 px-4 text-center space-y-4">
+          <div className="py-8 px-2 text-center space-y-4">
             {/* Icon / visual anchor */}
             <div className="flex justify-center">
               <div className="rounded-full bg-base-200 p-3">
@@ -117,7 +123,7 @@ const NotificationPanel = ({
 
             {/* Primary message */}
             <p className="text-sm font-medium text-base-content">
-              No notifications yet
+              No new notifications yet
             </p>
 
             {/* Explanation */}
@@ -126,17 +132,31 @@ const NotificationPanel = ({
               here.
             </p>
 
-            {/* Example (non-interactive, clearly a preview) */}
-            <div className="mt-3 mx-auto max-w-xs rounded-lg bg-base-200/70 p-3 text-left">
-              <p className="text-[11px] text-base-content/50 mb-1">
-                Example notification
-              </p>
-              <p className="text-sm font-medium text-base-content">
-                Aman sent you a connection request
-              </p>
-              <p className="text-xs text-base-content/60">
-                Start a conversation when you’re ready
-              </p>
+            {/* Example (preview only) */}
+            <div className="space-y-2 pt-2">
+              {/* <p className="text-[11px] uppercase tracking-wide text-base-content/40 text-left">
+                Example Preview
+              </p> */}
+
+              <div className="card card-compact bg-base-200/70 border border-dashed border-base-300 cursor-default">
+                <div className="card-body py-3 px-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="text-sm font-medium text-base-content">
+                      {exampleNotification.title}
+                    </h4>
+
+                    {exampleNotification?.time && (
+                      <span className="text-[11px] text-base-content/40 whitespace-nowrap">
+                        {exampleNotification.time}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-base-content/60 mt-1 leading-snug">
+                    {exampleNotification?.message}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* CTA */}

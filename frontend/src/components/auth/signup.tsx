@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import api from "../../utils/api";
+import { RootState } from "../../store/store";
+import { setUser } from "../../store/authSlice";
 
 const DevTinderSignup = () => {
   // Form state
@@ -27,6 +29,7 @@ const DevTinderSignup = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user, authChecked } = useSelector((state: RootState) => state.auth);
 
   // Initialize theme
   useEffect(() => {
@@ -36,39 +39,68 @@ const DevTinderSignup = () => {
     // document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
-  /**
-   * Email validation using RFC 5322 compliant regex
-   */
+  useEffect(() => {
+    if (authChecked && user) {
+      navigate("/profile/edit", { replace: true });
+    }
+  }, [authChecked, user, navigate]);
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    if (!validateForm() || isLoading) return;
+
+    setIsLoading(true);
+
+    try {
+      const res = await api.post("/auth/signup", {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      setToast({
+        message: res.data.message || "Account created successfully!",
+        type: "success",
+      });
+
+      dispatch(setUser(res.data.user));
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Signup failed. Please try again.";
+
+      setToast({
+        message: errorMessage,
+        type: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Email validation using RFC 5322 compliant regex
   const validateEmail = (email: string) => {
     const emailRegex =
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return emailRegex.test(email);
   };
 
-  /**
-   * Password validation
-   */
+  // Password validation
   const validatePassword = (password: string) => {
     return password.length >= 8;
   };
 
-  /**
-   * Name validation
-   */
+  // Name validation
   const validateName = (name: string) => {
     return name.trim().length >= 2 && /^[a-zA-Z\s]+$/.test(name);
   };
 
-  /**
-   * Input sanitization
-   */
+  // Input sanitization
   const sanitizeInput = (input: string) => {
     return input.trim().replace(/[<>]/g, "");
   };
 
-  /**
-   * Handle input changes with real-time validation
-   */
+  // Handle input changes with real-time validation
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const sanitizedValue = sanitizeInput(value);
@@ -87,9 +119,7 @@ const DevTinderSignup = () => {
     }
   };
 
-  /**
-   * Validate form before submission
-   */
+  // Validate form before submission
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
@@ -127,41 +157,6 @@ const DevTinderSignup = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  /**
-   * Handle form submission
-   */
-  const handleSubmit = async () => {
-    if (!validateForm() || isLoading) return;
-
-    setIsLoading(true);
-
-    try {
-      const response = await api.post("/auth/signup", {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-      });
-
-      setToast({
-        message: response.data.message || "Account created successfully!",
-        type: "success",
-      });
-
-      navigate("/profile/edit", { replace: true });
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Signup failed. Please try again.";
-
-      setToast({
-        message: errorMessage,
-        type: "error",
-      });
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (

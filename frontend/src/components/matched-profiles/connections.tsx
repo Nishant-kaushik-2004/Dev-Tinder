@@ -7,6 +7,8 @@ import ConnectionsGridSkeleton from "./ConnectionsGridSkeleton";
 import SearchAndSortBar from "./searchAndSortbar";
 import { IConnection, IConnectionResponse } from "../../utils/types";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 
 // Main MatchesPage Component
 const MatchesPage = () => {
@@ -17,13 +19,17 @@ const MatchesPage = () => {
 
   const navigate = useNavigate();
 
+  const { authChecked, user } = useSelector((state: RootState) => state.auth);
+
   useEffect(() => {
+    if (!authChecked || !user) return;
+
     const fetchConnections = async () => {
       setIsLoading(true);
       try {
         const res = await axios.get<IConnectionResponse>(
           `${import.meta.env.VITE_BACKEND_URL}/user/connections`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         if (!res.data.connections) throw new Error("No connections data found");
@@ -38,7 +44,7 @@ const MatchesPage = () => {
     };
 
     fetchConnections();
-  }, []);
+  }, [authChecked, user]);
 
   // Filter and sort connections
   const filteredAndSortedConnections = useMemo(() => {
@@ -52,7 +58,7 @@ const MatchesPage = () => {
           connection.connectedUser.firstName
             .toLowerCase()
             .includes(searchLower) ||
-          connection.connectedUser.lastName.toLowerCase().includes(searchLower)
+          connection.connectedUser.lastName.toLowerCase().includes(searchLower),
       );
     }
 
@@ -73,8 +79,6 @@ const MatchesPage = () => {
 
   // Handle connection card click
   const handleConnectionClick = (userId: string) => {
-    console.log("Navigate to profile:", userId);
-    // In real app: navigate(`/profile/${userId}`);
     navigate(`/user/${userId}`);
   };
 

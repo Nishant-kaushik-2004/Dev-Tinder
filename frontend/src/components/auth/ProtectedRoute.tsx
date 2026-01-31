@@ -6,8 +6,9 @@ export function ProtectedRoute() {
   const { user, authChecked } = useSelector((state: RootState) => state.auth);
   const location = useLocation();
 
+  // Do NOT render loading UI here
   if (!authChecked) {
-    return <div className="loading">Loading...</div>;
+    return <Outlet />; // let layout + skeletons render
   }
 
   if (!user) {

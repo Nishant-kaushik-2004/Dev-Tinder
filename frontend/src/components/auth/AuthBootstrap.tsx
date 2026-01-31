@@ -20,7 +20,6 @@ export function AuthBootstrap({ children }: { children: React.ReactNode }) {
 
         if (!cancelled) {
           dispatch(setUser(res.data.user));
-          console.log("inside if not cancelled");
         }
       } catch (err) {
         if (!cancelled) dispatch(clearUser()); // Very important to clear user even on error to mark authChecked true
@@ -36,13 +35,13 @@ export function AuthBootstrap({ children }: { children: React.ReactNode }) {
     };
   }, [dispatch]);
 
-  if (loading)
-    return (
-      // Loading spinner
-      <div className="flex items-center justify-center h-screen">
-        <div className="loading">Loading...</div>
-      </div>
-    );
+  // if (loading)
+  //   return (
+  //     // Loading spinner
+  //     <div className="flex items-center justify-center h-screen">
+  //       <div className="loading">Loading...</div>
+  //     </div>
+  //   );
 
   return <>{children}</>;
 }

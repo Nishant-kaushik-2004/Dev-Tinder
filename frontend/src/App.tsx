@@ -15,7 +15,7 @@ import ChatWindowFallback from "./components/messages-page/chatWindowFallback";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const App = () => {
-  // Initialize theme from localStorage
+  // Update theme from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);

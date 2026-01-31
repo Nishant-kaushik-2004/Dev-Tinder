@@ -13,12 +13,12 @@ import {
   IUserProfile,
   statusType,
 } from "../../utils/types";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import formatTimestamp from "../../helper/formatTimeStamp";
 import api from "../../utils/api";
 
 const UserProfilePage = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<IUserProfile | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
 
@@ -28,7 +28,9 @@ const UserProfilePage = () => {
 
   const isOwnProfile = pathname === "/profile" || pathname === "/profile/";
 
-  const loggedInUser = useSelector((state: RootState) => state.auth.user);
+  const { authChecked, user: loggedInUser } = useSelector(
+    (state: RootState) => state.auth,
+  );
 
   const loggedInUserId = loggedInUser?._id;
 
@@ -60,7 +62,7 @@ const UserProfilePage = () => {
   // };
 
   useEffect(() => {
-    if (!userId && !isOwnProfile) return;
+    if ((!userId && !isOwnProfile) || !authChecked || !loggedInUser) return;
 
     // 🔁 If user is trying to view their own profile via /user/:id
     if (userId === loggedInUserId) {
@@ -92,7 +94,14 @@ const UserProfilePage = () => {
     };
 
     fetchProfile();
-  }, [loggedInUserId, userId, isOwnProfile, navigate]);
+  }, [
+    loggedInUserId,
+    userId,
+    isOwnProfile,
+    navigate,
+    authChecked,
+    loggedInUser,
+  ]);
 
   const ACTION_CONFIG: Record<
     ConnectionActionType,
@@ -137,7 +146,7 @@ const UserProfilePage = () => {
     action: ConnectionActionType,
     userId: string,
   ) => {
-    if (!profileData) return;
+    if (!profileData || !authChecked || !loggedInUser) return;
 
     const previousStatus = profileData.connectionStatus;
 
@@ -182,16 +191,16 @@ const UserProfilePage = () => {
       // toast.error("Something went wrong. Please try again.");
     }
   };
-
+  
+  // Redirect to edit profile page
   const handleEditProfile = () => {
-    console.log("Redirect to edit profile page");
     navigate("/profile/edit");
   };
 
   const handleMessage = () => {
-    console.log("Open chat with user");
-    navigate(`/messages/user/${profileData?._id}`);
-    // In real app: navigate to chat or open chat modal
+    if (!authChecked || !loggedInUser || !profileData) return;
+    // Navigate to chat or open chat modal
+    navigate(`/messages/user/${profileData._id}`);
   };
 
   if (isLoading) {
