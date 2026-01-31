@@ -81,11 +81,9 @@ const UserProfilePage = () => {
           throw new Error("No User details found");
         }
 
-        console.log(res.data.user);
         setProfileData(res.data.user);
       } catch (error) {
         const axiosError = error as AxiosError;
-        console.log(axiosError);
         const errorMessage = axiosError.response?.data || "No User found";
         console.log(errorMessage);
       } finally {
@@ -191,7 +189,7 @@ const UserProfilePage = () => {
       // toast.error("Something went wrong. Please try again.");
     }
   };
-  
+
   // Redirect to edit profile page
   const handleEditProfile = () => {
     navigate("/profile/edit");

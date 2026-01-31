@@ -18,6 +18,7 @@ import NoDevelopersFallback from "./NoDevelopersFallback";
 import StatsCard from "./StatCard";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
+import api from "../../utils/api";
 
 //💡🚀 Pages may render early, but data fetching waits until authChecked === true and user !== null.
 const Feed = () => {
@@ -36,17 +37,13 @@ const Feed = () => {
   const fetchDevelopers = async () => {
     setIsDevelopersLoading(true);
     try {
-      const res = await axios.get<IFetchDevelopersResponse>(
-        `${import.meta.env.VITE_BACKEND_URL}/feed`,
-        {
-          withCredentials: true,
-          params: {
-            page,
-            limit: 10,
-            ...appliedFilters,
-          },
+      const res = await api.get<IFetchDevelopersResponse>("/feed", {
+        params: {
+          page,
+          limit: 10,
+          ...appliedFilters,
         },
-      );
+      });
       if (!res.data.developers) {
         throw new Error("No developers found");
       }
@@ -75,14 +72,11 @@ const Feed = () => {
 
   useEffect(() => {
     if (!authChecked || !user) return;
-    
+
     const fetchProfileStats = async () => {
       setIsStatLoading(true);
       try {
-        const res = await axios.get<IFetchFeedStatsResponse>(
-          `${import.meta.env.VITE_BACKEND_URL}/feed/stats`,
-          { withCredentials: true },
-        );
+        const res = await api.get<IFetchFeedStatsResponse>("/feed/stats");
 
         setStats(res.data.stats);
       } catch (error) {
@@ -113,12 +107,59 @@ const Feed = () => {
     setPage(1);
   };
 
+  // param direction - "left" for ignore, "right" for interested
+  // returns Promise that resolves when the request is complete
+  const handleLeftRightSwipe = async (
+    direction: "left" | "right",
+  ): Promise<void> => {
+    if (!developers || developers.length === 0) {
+      console.warn("No developers available to swipe");
+      return;
+    }
+
+    const currentUser = developers[currentDeveloper];
+
+    if (!currentUser || !currentUser._id) {
+      console.error("Invalid developer data");
+      return;
+    }
+
+    const toUserId = currentUser._id;
+    const status = direction === "right" ? "interested" : "ignored";
+
+    try {
+      // Make POST request to backend
+      const response = await api.post(`/requests/send/${toUserId}`, { status });
+
+      console.log(
+        `Successfully ${status} ${currentUser.firstName} ${currentUser.lastName}`,
+        // response.data,
+      );
+
+      // Move to next developer
+      setCurrentDeveloper((prev) => (prev + 1) % developers.length || 0);
+
+      // TODO: Show success toast notification
+      // toast.success(`${direction === "right" ? "Match request sent!" : "Profile ignored"}`);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      console.error(
+        "Swipe action failed:",
+        axiosError.response?.data?.message || axiosError.message,
+      );
+
+      // TODO: Show error toast notification
+      // toast.error(axiosError.response?.data?.message || "Failed to process swipe. Please try again.");
+    }
+  };
+
   const handleSwipe = (direction: "left" | "right"): void => {
     if (!developers || developers.length === 0) return;
     console.log(
       `Swiped ${direction} on ${developers[currentDeveloper].firstName} ${developers[currentDeveloper].lastName}`,
     );
-    setCurrentDeveloper((prev) => (prev + 1) % developers.length || 0);
+    // setCurrentDeveloper((prev) => (prev + 1) % developers.length || 0);
+    handleLeftRightSwipe(direction);
   };
 
   return (
