@@ -111,7 +111,7 @@ const UserProfilePage = () => {
   > = {
     send: {
       method: "post",
-      endpoint: (userId) => `/request/send/${userId}`,
+      endpoint: (userId) => `/requests/send/${userId}`,
       status: "interested",
     },
     accept: {
@@ -167,7 +167,7 @@ const UserProfilePage = () => {
         data: { status: ACTION_CONFIG[action].status },
       });
 
-      console.log(res.data);
+      // console.log(res.data);
     } catch (error) {
       // 🔻 Rollback on failure
       setProfileData((prev) =>

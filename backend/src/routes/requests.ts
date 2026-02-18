@@ -18,141 +18,119 @@ const ensureNotSelf = (a: string, b: string) => {
   if (a === b) throw new Error("Cannot perform action on yourself");
 };
 
-requestRouter.post("/send/:toUserId",
-  async (req: Request, res: Response) => {
-    try {
-      const fromUserId = req.user;
-      const { toUserId } = req.params;
-      const { status } = req.body;
+requestRouter.post("/send/:toUserId", async (req: Request, res: Response) => {
+  try {
+    const fromUserId = req.user;
+    const { toUserId } = req.params;
+    const { status } = req.body;
 
-      ensureNotSelf(fromUserId!, toUserId);
+    ensureNotSelf(fromUserId!, toUserId);
 
-      const allowedStatus = ["interested", "ignored"];
+    const allowedStatus = ["interested", "ignored"];
 
-      if (!allowedStatus.includes(status))
-        throw new Error("Invalid connection request status");
+    if (!allowedStatus.includes(status))
+      throw new Error("Invalid connection request status");
 
-      // validates if the userId got is a valid mongoDb objectId.
-      if (!mongoose.Types.ObjectId.isValid(toUserId)) {
-        throw new Error(`Invalid user identifier`);
-      }
-
-      // Necessary to check if toUserId is present in DB or not as we are creating something in database involving that user.
-      const isToUserPresent = await User.findById(toUserId);
-
-      // Check if any user present with the given userId
-      if (!isToUserPresent) {
-        res.status(404).json({
-          message: `No user found with userId: ${toUserId}.`,
-        });
-        return;
-      }
-
-      // if (fromUserId?.equals(toUserId)) //Done in 'pre-save hook' of connReqSchema
-      //   throw new Error("Can't connect with yourself");
-
-      const existingReq = await ConnectionReqModel.findOne({
-        $or: [
-          { fromUserId, toUserId },
-          { fromUserId: toUserId, toUserId: fromUserId },
-        ],
-      });
-
-      if (existingReq) {
-        res.status(409).json({
-          message: `Connection already exist with status ${existingReq.status}`,
-          connReq: existingReq,
-        });
-        return;
-      }
-
-      const connReq = new ConnectionReqModel({
-        fromUserId,
-        toUserId,
-        status,
-      });
-
-      await connReq.save();
-
-      res.status(200).json({
-        message: `Match ${
-          connReq.status === "interested" ? "request sent" : "profile ignored"
-        } successfully`,
-        connReq,
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).json({ message: "ERROR : " + error.message });
-      } else {
-        res.status(500).json({ message: "ERROR : Something went wrong" });
-      }
+    // validates if the userId got is a valid mongoDb objectId.
+    if (!mongoose.Types.ObjectId.isValid(toUserId)) {
+      throw new Error(`Invalid user identifier`);
     }
-  },
-);
+
+    // Necessary to check if toUserId is present in DB or not as we are creating something in database involving that user.
+    const isToUserPresent = await User.findById(toUserId);
+
+    // Check if any user present with the given userId
+    if (!isToUserPresent) {
+      res.status(404).json({
+        message: `No user found with userId: ${toUserId}.`,
+      });
+      return;
+    }
+
+    // if (fromUserId?.equals(toUserId)) //Done in 'pre-save hook' of connReqSchema
+    //   throw new Error("Can't connect with yourself");
+
+    const existingReq = await ConnectionReqModel.findOne({
+      $or: [
+        { fromUserId, toUserId },
+        { fromUserId: toUserId, toUserId: fromUserId },
+      ],
+    });
+
+    if (existingReq) {
+      res.status(409).json({
+        message: `Connection already exist with status ${existingReq.status}`,
+        connReq: existingReq,
+      });
+      return;
+    }
+
+    const connReq = new ConnectionReqModel({
+      fromUserId,
+      toUserId,
+      status,
+    });
+
+    await connReq.save();
+
+    res.status(200).json({
+      message: `Match ${
+        connReq.status === "interested" ? "request sent" : "profile ignored"
+      } successfully`,
+      connReq,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ message: "ERROR : " + error.message });
+    } else {
+      res.status(500).json({ message: "ERROR : Something went wrong" });
+    }
+  }
+});
 
 // These is used when you already have requestId, e.g.:
 // • Match request list page, Matches list Page
 // • Admin tools
 // • Notifications
-requestRouter.patch("/review/:requestId",
+requestRouter.patch(
+  "/review/:requestId",
   async (req: Request, res: Response) => {
     try {
-      const toUserId = req.user;
       const { requestId } = req.params;
       const { status } = req.body;
-
-      const toUser = await User.findById(toUserId); // When i will write middleware then i had to check the loggedInUser(user coming from req.user, injected by middleware) has the same toUserId as this request or not.
-      // because request to someone else can't be accepted by the loggedIn user if he is not the toUserId(reciever) of it.
-
-      if (!toUser) {
-        res.status(401).json({
-          message: `Unauthorised user!! please login first to review requests.`,
+      console.log(req.body);
+      if (!["accepted", "rejected"].includes(status)) {
+        res.status(400).json({
+          message: "Invalid connection response status",
         });
         return;
       }
 
-      const allowedStatus = ["accepted", "rejected"];
-
-      if (!allowedStatus.includes(status))
-        throw new Error("Invalid connection response status!");
-
       // validates if the requestId got is a valid mongoDb objectId.
       if (!mongoose.Types.ObjectId.isValid(requestId)) {
-        throw new Error("Invalid request identifier");
-      }
-
-      const connRequest = await ConnectionReqModel.findById(requestId);
-      // can be removed from here and checked afterwards about that it is ignored or interested, but sending the msg that status is rejected(if so) is not usefull here.
-
-      if (!connRequest || connRequest.status !== "interested") {
-        res
-          .status(404)
-          .json({ message: `No pending match request has been sent` });
+        res.status(400).json({
+          message: "Invalid request identifier",
+        });
         return;
       }
 
-      // loggedIn user should be toUserId
-      if (connRequest.toUserId.toString() !== toUserId) {
-        throw new Error(`This match request is not sent to you`);
+      // Earlier i am finding just by requestId then one by one checking for the status and toUserId but now i am directly finding by all three, this is more efficient as it will return null if any of the condition is not matched and we are also reducing the number of DB calls.
+      // Not required to say eaxactly whats wrong in the response msg.
+      const connRequest = await ConnectionReqModel.findOne({
+        _id: requestId,
+        toUserId: req.user,
+        status: "interested",
+      });
+
+      if (!connRequest) {
+        res.status(404).json({
+          message: "Match request not found",
+        });
+        return;
       }
 
-      connRequest.status = status as "interested" | "ignored";
+      connRequest.status = status as "accepted" | "rejected";
 
-      // const fromUserId = connRequest.fromUserId;
-
-      // const alreadyReviewdReq = await ConnectionReqModel.findOne({
-      //   fromUserId: toUserId, // reciever will become the fromUserId as he/she will accept or reject the request not the sender.
-      //   toUserId: fromUserId,
-      // });
-
-      // if (alreadyReviewdReq) {
-      //   return res.status(400).json({
-      //     message: `Connection request already ${alreadyReviewdReq.status} by you`,
-      //     connResponse: alreadyReviewdReq,
-      //   });
-      // }
-
-      // No need to create new connections request document, just change the status from interested to accepted or rejected.
       await connRequest.save();
 
       res.status(200).json({
@@ -170,7 +148,8 @@ requestRouter.patch("/review/:requestId",
 );
 
 // Review connection request (accept/reject) for a specific fromUserId
-requestRouter.patch("/review/:fromUserId",
+requestRouter.patch(
+  "/review/:fromUserId",
   async (req: Request, res: Response) => {
     try {
       const toUserId = req.user;
@@ -218,7 +197,8 @@ requestRouter.patch("/review/:fromUserId",
 );
 
 // Cancel connection request sent to a specific toUserId by loggedIn user
-requestRouter.delete( "/cancel/:toUserId",
+requestRouter.delete(
+  "/cancel/:toUserId",
   async (req: Request, res: Response) => {
     try {
       const fromUserId = req.user;

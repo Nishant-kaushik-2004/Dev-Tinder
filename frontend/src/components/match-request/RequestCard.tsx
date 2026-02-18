@@ -6,6 +6,7 @@ interface RequestCardProps {
   request: IRequest;
   handleRequest: (id: string, status: "accepted" | "rejected") => Promise<void>;
   isProcessing: boolean;
+  handleRequestCardClick: (userId: string) => void;
 }
 
 // Request Card Component
@@ -13,6 +14,7 @@ const RequestCard = ({
   request,
   handleRequest,
   isProcessing,
+  handleRequestCardClick,
 }: RequestCardProps) => {
   const { fromUser: user } = request;
   const [isHovered, setIsHovered] = useState(false);
@@ -28,6 +30,7 @@ const RequestCard = ({
       } ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => handleRequestCardClick(request.fromUser._id)}
     >
       <div className="card-body p-6">
         <div className="flex flex-col items-center space-y-4">
@@ -80,7 +83,13 @@ const RequestCard = ({
           {/* Action Buttons */}
           <div className="flex space-x-3 w-full pt-2">
             <button
-              onClick={() => handleAcceptOrReject("rejected")}
+              onClick={(e) => {
+                // e.stopPropagation() tells the browser:
+                // “Do NOT bubble this event to parent elements.”
+                // This is crucial here because we have an onClick on the card itself that navigates to the user’s profile. If we didn’t stop propagation, clicking the Reject button would also trigger the card’s onClick, taking us to the profile page instead of just rejecting the request.
+                e.stopPropagation();
+                handleAcceptOrReject("rejected");
+              }}
               disabled={isProcessing}
               className="btn btn-outline flex-1 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label={`Reject ${user.firstName}'s request`}
@@ -90,7 +99,10 @@ const RequestCard = ({
             </button>
 
             <button
-              onClick={() => handleAcceptOrReject("accepted")}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAcceptOrReject("accepted");
+              }}
               disabled={isProcessing}
               className="btn btn-primary flex-1 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label={`Accept ${user.firstName}'s request`}

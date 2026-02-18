@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { GitPullRequestDraft, Sparkles } from "lucide-react";
+import { GitPullRequestDraft } from "lucide-react";
 import { useNavigate } from "react-router";
 import RequestCardSkeleton from "./RequestCardSkeleton";
 import EmptyState from "./EmptyRequestsState";
@@ -13,6 +13,8 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import api from "../../utils/api";
+
+export type RequestStatus = "accepted" | "rejected";
 
 const MatchRequests = () => {
   const [requests, setRequests] = useState<IRequest[]>([]);
@@ -49,7 +51,7 @@ const MatchRequests = () => {
   // Handle Accept/Reject request.
   const handleRequest = async (
     requestId: string,
-    requestStatus: "accepted" | "rejected",
+    requestStatus: RequestStatus,
   ) => {
     if (!authChecked || !user) return;
 
@@ -57,7 +59,8 @@ const MatchRequests = () => {
 
     const currRequest = requests.find((req) => req._id === requestId);
     if (!currRequest) {
-      console.error("Request not found:", requestId);
+      // Wanted to show a toast notification here with below message.
+      // console.log("Request not found:", requestId);
       setProcessingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(requestId);
@@ -73,12 +76,11 @@ const MatchRequests = () => {
       // Optimistic update
       setRequests((prev) => prev.filter((req) => req._id !== requestId));
 
-      // Simulate API call
       // await new Promise((resolve) => setTimeout(resolve, 1000));
-      // console.log(currRequest);
 
       const res = await api.patch<IReviewRequestResponse>(
-        `/request/review/${requestStatus}/${requestId}`,
+        `/requests/review/${requestId}`,
+        { status: requestStatus },
       );
       // Why Patch?
       // 	•	Updates an existing request’s status
@@ -87,9 +89,10 @@ const MatchRequests = () => {
       if (!res.data.connRequest)
         throw new Error("No updated connection request data found");
 
-      console.log(`Request ${requestAction}:`, res.data.connRequest);
+      // Wherever we placed console log, we can replace it with a toast notification in the future.
+      // console.log(`Request ${requestAction}:`, res.data.connRequest);
     } catch (error) {
-      console.error(`Error ${requestAction.toLowerCase()} request:`, error);
+      console.log(`Error ${requestAction.toLowerCase()} request:`, error);
       // Revert optimistic update on error
       setRequests((prev) => [...prev, currRequest]);
       // In future, we might want to refetch data or show error message
@@ -179,12 +182,12 @@ const MatchRequests = () => {
                   animationFillMode: "both",
                 }}
                 className="animate-fade-in-up"
-                onClick={() => handleRequestCardClick(request.fromUser._id)}
               >
                 <RequestCard
                   request={request}
                   handleRequest={handleRequest}
                   isProcessing={processingIds.has(request._id)}
+                  handleRequestCardClick={handleRequestCardClick}
                 />
               </div>
             ))}
