@@ -11,7 +11,7 @@ import {
   IFilter,
   IUserInfo,
 } from "../../utils/types";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import StatsCardsSkeleton from "./StatsCardsSkeleton";
 import DeveloperCardSkeleton from "./DeveloperCardSkeleton";
 import NoDevelopersFallback from "./NoDevelopersFallback";
@@ -31,10 +31,12 @@ const Feed = () => {
   const [draftFilters, setDraftFilters] = useState<IFilter>({});
   const [appliedFilters, setAppliedFilters] = useState<IFilter>({});
   const [page, setPage] = useState(1);
+  const [isPrefetching, setIsPrefetching] = useState(false);
+  const [hasMoreDevelopers, setHasMoreDevelopers] = useState(true);
 
   const { authChecked, user } = useSelector((state: RootState) => state.auth);
 
-  const fetchDevelopers = async () => {
+  const fetchDevelopers = async (append: boolean = false) => {
     setIsDevelopersLoading(true);
     try {
       const res = await api.get<IFetchDevelopersResponse>("/feed", {
@@ -48,7 +50,17 @@ const Feed = () => {
         throw new Error("No developers found");
       }
 
-      setDevelopers(res.data.developers || []);
+      // If append is true, we add to the existing list from page 2 fetched data. Otherwise, we replace it.
+      if (append) {
+        setDevelopers((prev) => [
+          ...(prev || []),
+          ...(res.data.developers || []),
+        ]);
+      } else {
+        setDevelopers(res.data.developers || []);
+      }
+
+      setHasMoreDevelopers(res.data.pagination.hasMore);
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
       console.error(
@@ -70,6 +82,47 @@ const Feed = () => {
     fetchDevelopers();
   }, [authChecked, user, appliedFilters, page]);
 
+  // Prefetch next page of developers when user is about to swipe the last 2 cards
+  useEffect(() => {
+    if (!developers) return;
+    if (!hasMoreDevelopers) return; // 🔥 important
+    // Do not prefetch if initial list has 2 or less
+    if (developers.length <= 2) return;
+
+    const remaining = developers.length - currentDeveloper - 1;
+
+    // If 2 cards left and not already prefetching
+    if (remaining === 2 && !isPrefetching) {
+      setIsPrefetching(true);
+
+      const nextPage = page + 1;
+
+      api
+        .get<IFetchDevelopersResponse>("/feed", {
+          params: {
+            page: nextPage,
+            limit: 3,
+            ...appliedFilters,
+          },
+        })
+        .then((res) => {
+          if (res.data.developers?.length) {
+            setDevelopers((prev) => [...(prev || []), ...res.data.developers]);
+          }
+          setHasMoreDevelopers(res.data.pagination.hasMore);
+          setPage(nextPage);
+          console.log(res.data.developers);
+        })
+        .catch((err) => {
+          console.error("Prefetch failed:", err);
+        })
+        .finally(() => {
+          setIsPrefetching(false);
+        });
+    }
+  }, [currentDeveloper]);
+
+  // Fetch feed stats on component mount and when user changes
   useEffect(() => {
     if (!authChecked || !user) return;
 
@@ -137,7 +190,7 @@ const Feed = () => {
       );
 
       // Move to next developer
-      setCurrentDeveloper((prev) => (prev + 1) % developers.length || 0);
+      setCurrentDeveloper((prev) => prev + 1);
 
       // TODO: Show success toast notification
       // toast.success(`${direction === "right" ? "Match request sent!" : "Profile ignored"}`);
@@ -154,10 +207,12 @@ const Feed = () => {
   };
 
   const handleSwipe = (direction: "left" | "right"): void => {
-    if (!developers || developers.length === 0) return;
-    console.log(
-      `Swiped ${direction} on ${developers[currentDeveloper].firstName} ${developers[currentDeveloper].lastName}`,
-    );
+    if (
+      !developers ||
+      developers.length === 0 ||
+      currentDeveloper >= developers.length
+    )
+      return;
     // setCurrentDeveloper((prev) => (prev + 1) % developers.length || 0);
     handleLeftRightSwipe(direction);
   };
@@ -243,13 +298,15 @@ const Feed = () => {
                 <DeveloperCardSkeleton />
                 {/* <DeveloperCardStackSkeleton /> */}
               </>
-            ) : developers && developers.length > 0 ? (
+            ) : developers &&
+              developers.length > 0 &&
+              currentDeveloper < developers.length ? (
               <>
                 <DeveloperCard
                   developer={developers[currentDeveloper]}
                   onSwipe={handleSwipe}
                 />
-                {developers.length > 1 && (
+                {developers.length > currentDeveloper + 1 && (
                   <div className="absolute top-2 left-2 w-96 h-[550px] rounded-2xl bg-base-100 shadow-lg -z-10 opacity-0 overflow-hidden">
                     <figure className="h-full">
                       <img
@@ -266,7 +323,14 @@ const Feed = () => {
                 )}
               </>
             ) : (
-              <NoDevelopersFallback onRefresh={() => fetchDevelopers()} />
+              <NoDevelopersFallback
+                onRefresh={() => {
+                  setPage(1);
+                  setCurrentDeveloper(0);
+                  setHasMoreDevelopers(true);
+                  fetchDevelopers();
+                }}
+              />
             )}
           </div>
         </div>

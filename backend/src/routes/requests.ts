@@ -26,9 +26,7 @@ requestRouter.post("/send/:toUserId", async (req: Request, res: Response) => {
 
     ensureNotSelf(fromUserId!, toUserId);
 
-    const allowedStatus = ["interested", "ignored"];
-
-    if (!allowedStatus.includes(status))
+    if (!["interested", "ignored"].includes(status))
       throw new Error("Invalid connection request status");
 
     // validates if the userId got is a valid mongoDb objectId.
@@ -37,12 +35,12 @@ requestRouter.post("/send/:toUserId", async (req: Request, res: Response) => {
     }
 
     // Necessary to check if toUserId is present in DB or not as we are creating something in database involving that user.
-    const isToUserPresent = await User.findById(toUserId);
+    const isToUserPresent = await User.exists({ _id: toUserId });
 
     // Check if any user present with the given userId
     if (!isToUserPresent) {
       res.status(404).json({
-        message: `No user found with userId: ${toUserId}.`,
+        message: "No user found with the given identifier",
       });
       return;
     }
@@ -74,8 +72,10 @@ requestRouter.post("/send/:toUserId", async (req: Request, res: Response) => {
     await connReq.save();
 
     res.status(200).json({
-      message: `Match ${
-        connReq.status === "interested" ? "request sent" : "profile ignored"
+      message: `${
+        connReq.status === "interested"
+          ? "Match request sent"
+          : "Profile ignored"
       } successfully`,
       connReq,
     });
@@ -98,7 +98,7 @@ requestRouter.patch(
     try {
       const { requestId } = req.params;
       const { status } = req.body;
-      console.log(req.body);
+
       if (!["accepted", "rejected"].includes(status)) {
         res.status(400).json({
           message: "Invalid connection response status",
@@ -159,7 +159,7 @@ requestRouter.patch(
       ensureNotSelf(fromUserId, toUserId!);
 
       if (!["accepted", "rejected"].includes(status)) {
-        res.status(400).json({ message: "Invalid status" });
+        res.status(400).json({ message: "Invalid connection request status" });
         return;
       }
 
@@ -185,7 +185,14 @@ requestRouter.patch(
       request.status = status;
       await request.save();
 
-      res.status(200).json({ message: `Request ${status}`, request });
+      res.status(200).json({
+        message: `Match request ${status}. You can now ${
+          status === "accepted"
+            ? "chat with the user"
+            : "no longer see the user's profile in recommendations"
+        }`,
+        request,
+      });
     } catch (error) {
       if (error instanceof Error) {
         res.status(400).json({ message: "ERROR : " + error.message });

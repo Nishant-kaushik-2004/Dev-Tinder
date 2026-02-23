@@ -121,6 +121,11 @@ export interface IFetchFeedStatsResponse {
 export interface IFetchDevelopersResponse {
   message: string;
   developers: IUserInfo[];
+  pagination: {
+    page: number;
+    limit: number;
+    hasMore: boolean;
+  };
 }
 
 export interface IFilter {
