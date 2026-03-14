@@ -56,7 +56,12 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
       sameSite: "none", // REQUIRED for cross-site (Vercel → EC2)
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
       // secure: process.env.NODE_ENV === "production",
+      // domain: ".devtinder.com",
     });
+    // 👉🏻 Domain attribute of the cookie in the browser is used to define that to which backend url's this cookie will be sent. It's a security measure for keeping cookies sperate for diff websites.
+    // 👉🏻 A server can only set cookies for its own domain or parent domain.
+    // 👉🏻 If we set domain other than our actual backend domain, cookie will not be set in browser and we will get "Set-Cookie header present but no cookie stored" error in browser console.
+    // 👉🏻 So, its actual use case is to widen-up the domains where this cookie will be sent by browser after it sets up. Like if we login to api.gmail.google.com then it will set domain: ".google.com" so that it works for even "api.youtube.google.com".
 
     const { password: _, ...userWithoutPassword } = newUser.toObject();
 

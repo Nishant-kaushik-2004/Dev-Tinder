@@ -15,18 +15,22 @@ let socket: Socket | null = null;
 
 export default function getSocket(createNew = false): Socket {
   if (!socket || createNew) {
-    socket = io(import.meta.env.VITE_BACKEND_URL!, {
-      path: "/socket.io",
+    // This is because i have added a proxy in the frontend (vercel.json) for socket.io also to forward /api/socket.io/:path* to backend_url/socket.io/:path*.
+
+    // Default path is always /socket.io, but since we have added a proxy for /api/socket.io, we need to change the path to /api/socket.io in the client as well but later vercel redirects it and remove /api.
+
+    // If we want to use custom path then we had to also change the path in the backend.
+
+    // It is not necessary to provide the base URL in io() if our frontend and backend appear to be on the same origin. ✔ If they are on different origins, we must provide it. But here we are using a proxy in the frontend (vercel.json) to forward /api/socket.io/:path* to backend_url/socket.io/:path*, so we can just use "/" as the base URL and it will work.
+    socket = io("/", {
+      path: "/api/socket.io",
       withCredentials: true, // 🔴 REQUIRED for cookies
     });
-    // if (location.hostname == "localhost") {
-    //   socket = io(import.meta.env.VITE_BACKEND_URL);
-    // } else {
-    //   socket = io("/", {
-    //     path: "/socket.io",
-    //     withCredentials: true, // 🔴 REQUIRED for cookies
-    //   });
-    // }
+    // Earlier configuration
+    // socket = io(import.meta.env.VITE_BACKEND_URL!, {
+    //   path: "/socket.io",
+    //   withCredentials: true, // 🔴 REQUIRED for cookies
+    // });
   }
   return socket;
 }

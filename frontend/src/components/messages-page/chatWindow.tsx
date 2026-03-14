@@ -118,7 +118,7 @@ const ChatWindow = () => {
     const socket = getSocket();
 
     function handleIncoming(newMessage: ReceivedMessage) {
-      console.log(newMessage);
+      // console.log(Date.now(), "New message received in chat window:");
       const { messagePayload, senderInfo, chat } = newMessage;
       // Only update if message belongs to the currently open chat
       if (
@@ -134,13 +134,13 @@ const ChatWindow = () => {
 
       if (senderInfo._id === loggedInUser._id) {
         // Message sent by logged in user himself/herself inside temp chat
-        console.log("Message sent by logged in user inside temp chat");
+        // console.log("Message sent by logged in user inside temp chat");
         if (!tempChat) {
           // It means its not the first message(of temp chat) so just update existing chat in store
           const existingChatIdx = chats.findIndex(
             (c) => c.chatId === chat.chatId,
           );
-          console.log("Existing chat index:", existingChatIdx);
+          // console.log("Existing chat index:", existingChatIdx);
           if (existingChatIdx === -1) return; // Just a safety check
           dispatch(
             updateChat({
@@ -225,6 +225,8 @@ const ChatWindow = () => {
     // Make Api call to save message to backend  -> But this thing is already happening in sendMessage socket event in backend.
 
     const socket = getSocket(); // get initialized or check socket connection again
+
+    // console.log("message to be sent:", Date.now());
 
     socket.emit("sendMessage", {
       // Emit sendMessage socket event to send message

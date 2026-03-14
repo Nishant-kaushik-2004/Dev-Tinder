@@ -121,7 +121,7 @@ const InitializeSocket = (server: HttpServer) => {
     });
 
     socket.on("sendMessage", async (payload: SendMessage) => {
-      console.log(payload);
+      console.log(Date.now(), "sendMessage event received");
       const { senderInfo, senderId, receiverId, text } = payload;
       const roomId = getSecretRoomId(senderId, receiverId);
 
@@ -163,7 +163,7 @@ const InitializeSocket = (server: HttpServer) => {
         seenBy: message.seenBy.map((id) => id.toString()),
         timestamp: message.createdAt,
       };
-      console.log(messagePayload);
+      console.log(Date.now(), "message emited again");
       // 4) Emit to BOTH sender & receiver (to a room where they both joined)
       io.to(roomId).emit("messageReceived", {
         messagePayload,
