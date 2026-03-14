@@ -9,6 +9,7 @@ import { IConnection, IConnectionResponse } from "../../utils/types";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
+import api from "../../utils/api";
 
 // Main MatchesPage Component
 const MatchesPage = () => {
@@ -27,10 +28,7 @@ const MatchesPage = () => {
     const fetchConnections = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get<IConnectionResponse>(
-          `${import.meta.env.VITE_BACKEND_URL}/user/connections`,
-          { withCredentials: true },
-        );
+        const res = await api.get<IConnectionResponse>("/user/connections");
 
         if (!res.data.connections) throw new Error("No connections data found");
 

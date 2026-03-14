@@ -4,6 +4,9 @@ node_modules/
 *.txt
 *.md
 
+#Others
+TODO.txt
+
 # Build
 dist/
 build/

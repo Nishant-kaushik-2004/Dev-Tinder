@@ -31,9 +31,8 @@ const MatchRequests = () => {
     const fetchRequests = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get<IMatchRequestResponse>(
-          `${import.meta.env.VITE_BACKEND_URL}/user/requests/received`,
-          { withCredentials: true },
+        const res = await api.get<IMatchRequestResponse>(
+          "/user/requests/received",
         );
 
         if (!res.data.requests) throw new Error("No match requests data found");

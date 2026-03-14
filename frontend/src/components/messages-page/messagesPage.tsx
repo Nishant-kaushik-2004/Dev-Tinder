@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowRightToLine } from "lucide-react";
-import SkeletonLoader from "./messagesSkeletonLoader";
 import ChatList from "./chatList";
 import { Outlet, useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { addNewChat, setChats } from "../../store/chatsSlice";
-import axios from "axios";
+import { setChats } from "../../store/chatsSlice";
 import { Chat, IUser } from "../../utils/types";
 import { RootState } from "../../store/store";
 import getSocket from "../../utils/socket";
