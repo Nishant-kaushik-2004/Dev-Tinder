@@ -17,7 +17,7 @@ const userAuth = (req: Request, res: Response, next: NextFunction) => {
 
     if (typeof decoded !== "object" || !("loggedInUserId" in decoded)) {
       res.status(401).json({
-        message: "Unauthorized: invalid token payload",
+        message: "Unauthorized:Invalid token payload",
       });
       return;
     }

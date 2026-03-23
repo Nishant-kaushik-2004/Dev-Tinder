@@ -120,6 +120,8 @@ const LoginPage = () => {
       //   localStorage.setItem('rememberMe', 'true');
       // }
 
+      console.log(res);
+
       setToast({
         message: res.data.message || "Login successful! Redirecting...",
         type: "success",

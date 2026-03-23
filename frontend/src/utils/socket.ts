@@ -22,8 +22,9 @@ export default function getSocket(createNew = false): Socket {
     // If we want to use custom path then we had to also change the path in the backend.
 
     // It is not necessary to provide the base URL in io() if our frontend and backend appear to be on the same origin. ✔ If they are on different origins, we must provide it. But here we are using a proxy in the frontend (vercel.json) to forward /api/socket.io/:path* to backend_url/socket.io/:path*, so we can just use "/" as the base URL and it will work.
-    socket = io("/", {
-      path: "/api/socket.io",
+    const isProduction = import.meta.env.PROD; // -> Base url is needed in development
+    socket = io(isProduction ? "/" : import.meta.env.VITE_BACKEND_URL, {
+      // path: "/socket.io", -> It's by default
       withCredentials: true, // 🔴 REQUIRED for cookies
     });
     // Earlier configuration

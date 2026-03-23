@@ -279,7 +279,7 @@ const ChatWindow = () => {
     }
   }, [message]);
 
-  if (isLoading) {
+  if (isLoading || !loggedInUser) {
     return <ChatWindowSkeleton isMobile={isMobile} />;
   }
 
@@ -291,7 +291,7 @@ const ChatWindow = () => {
   const user = {
     name: `${chat.participantInfo?.firstName} ${chat.participantInfo.lastName}`,
     avatar: chat.participantInfo?.photoUrl,
-    status: "online", // This can be dynamic based on real user status
+    status: "offline", // This can be dynamic based on real user status
   };
 
   return (
