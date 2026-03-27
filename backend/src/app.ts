@@ -30,8 +30,19 @@ app.set("trust proxy", true);
 
 export const allowedOrigins = [
   process.env.FRONTEND_URL, // production (Vercel)
+  ...(process.env.FRONTEND_URLS
+    ? process.env.FRONTEND_URLS.split(",").map((origin) => origin.trim())
+    : []),
   "http://localhost:5173", // local dev
 ].filter(Boolean) as string[];
+
+const vercelPreviewOriginRegex = /^https:\/\/.*\.vercel\.app$/i;
+
+export const isAllowedOrigin = (origin: string) => {
+  return (
+    allowedOrigins.includes(origin) || vercelPreviewOriginRegex.test(origin)
+  );
+};
 
 app.use(
   cors({
@@ -39,7 +50,7 @@ app.use(
       // allow server-to-server, curl, etc.
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
 

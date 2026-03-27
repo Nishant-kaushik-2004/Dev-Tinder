@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { Chat, Message } from "../models/chatModel.js";
 import mongoose from "mongoose";
 import { User } from "../models/userModel.js";
-import { allowedOrigins } from "../app.js";
+import { isAllowedOrigin } from "../app.js";
 
 interface ServerToClientEvents {
   messageReceived: (data: {
@@ -75,7 +75,7 @@ const InitializeSocket = (server: HttpServer) => {
       origin: (origin, callback) => {
         if (!origin) return callback(null, true); // mobile / curl
 
-        if (allowedOrigins.includes(origin)) {
+        if (isAllowedOrigin(origin)) {
           return callback(null, true);
         }
 
