@@ -81,7 +81,7 @@ const InitializeSocket = (server: HttpServer) => {
 
         return callback(new Error("Not allowed by CORS"));
       },
-      credentials: true,
+      credentials: false, // 🔴 REQUIRED for cookies but we are not using auth so cookie not required so we keep false
     },
   });
   // NOTE: Socket is a server side name for a client connection.
