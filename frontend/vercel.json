@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/socket.io/:path*",
+      "source": "/api/socket.io/:path*",
       "destination": "https://devtinder-api.duckdns.org/socket.io/:path*"
     },
     {
